@@ -1,0 +1,16 @@
+[
+  {
+    "id": "lemari",
+    "name": "Lemari Kayu",
+    "file": "./models/lemari.glb",
+    "thumbnail": "./models/lemariKayu.png",
+    "type": "cabinet"
+  },
+  {
+    "id": "rak",
+    "name": "Rak Modular",
+    "file": "./models/rak.glb",
+    "thumbnail": "./models/lemariKayu.png",
+    "type": "rack"
+  }
+]
