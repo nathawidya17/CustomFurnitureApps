@@ -4,16 +4,248 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Katalog Furnitur</title>
-    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="catalog" class="">
-        <div class="catalog-inner">
-            <h2>Katalog Rak</h2>
-            <p>Pilih model untuk mulai menyesuaikan.</p>
-            <div id="catalogList" class="catalog-list"></div>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-500 to-orange-600 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-white">Debbi Meubeul</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative hidden md:block">
+                        <input type="text" placeholder="Cari produk..." class="w-96 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300">
+                        <button class="absolute right-2 top-2 text-orange-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <button class="text-white hover:text-orange-100 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex items-center space-x-2 text-sm text-gray-600">
+            <a href="#" class="hover:text-orange-600">Home</a>
+            <span>/</span>
+            <span class="text-orange-600">Katalog Rak</span>
         </div>
     </div>
-    <script type="module" src="./catalog.js"></script>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
+        <!-- Category Banner -->
+        <div class="bg-gradient-to-r from-orange-100 to-orange-50 rounded-lg p-6 mb-6 shadow-sm">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Katalog Rak</h2>
+            <p class="text-gray-600">Pilih model untuk mulai menyesuaikan furnitur impian Anda</p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600 font-medium">Filter:</span>
+                    <button class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition">
+                        Semua
+                    </button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        Rak Buku
+                    </button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        Rak Display
+                    </button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        Rak TV
+                    </button>
+                </div>
+                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <option>Urutkan: Terpopuler</option>
+                    <option>Harga: Rendah ke Tinggi</option>
+                    <option>Harga: Tinggi ke Rendah</option>
+                    <option>Terbaru</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="catalogList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <!-- Products will be loaded here from catalog.json -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-center mt-8 space-x-2">
+            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <button class="px-4 py-2 bg-orange-500 text-white rounded-lg shadow-sm font-medium">1</button>
+            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">2</button>
+            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">3</button>
+            <span class="px-2 text-gray-400">...</span>
+            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">10</button>
+            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Load catalog data from catalog.json
+        async function loadCatalog() {
+            try {
+                const response = await fetch('./models/catalog.json');
+                const data = await response.json();
+                const catalogList = document.getElementById('catalogList');
+                
+                if (data && data.length > 0) {
+                    catalogList.innerHTML = '';
+                    data.forEach((item, index) => {
+                        const card = createProductCard(item, index);
+                        catalogList.innerHTML += card;
+                    });
+                } else {
+                    catalogList.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">Tidak ada produk tersedia</div>';
+                }
+            } catch (error) {
+                console.error('Error loading catalog:', error);
+                document.getElementById('catalogList').innerHTML = 
+                    '<div class="col-span-full text-center py-12 text-red-500">Gagal memuat katalog. Pastikan file catalog.json ada.</div>';
+            }
+        }
+
+        // Create product card HTML
+        function createProductCard(item, index) {
+            const badges = ['', '', 'New', 'Premium', ''];
+            const badgeColors = ['bg-orange-500', 'bg-red-500', 'bg-green-500', 'bg-purple-500', ''];
+            const badgeIndex = index % badges.length;
+            const badge = badges[badgeIndex];
+            const badgeColor = badgeColors[badgeIndex];
+            
+            const rating = (4.5 + Math.random() * 0.5).toFixed(1);
+            const sold = Math.floor(Math.random() * 200) + 30;
+            
+            // Generate random price based on type
+            let basePrice = 1000000;
+            if (item.type === 'cabinet') {
+                basePrice = 2500000 + Math.floor(Math.random() * 1500000);
+            } else if (item.type === 'rack') {
+                basePrice = 1200000 + Math.floor(Math.random() * 800000);
+            }
+            
+            const formattedPrice = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(basePrice);
+            
+            // Get type label
+            const typeLabels = {
+                'cabinet': 'Lemari',
+                'rack': 'Rak',
+                'shelf': 'Rak'
+            };
+            const typeLabel = typeLabels[item.type] || 'Furnitur';
+
+            return `
+                <div class="bg-white rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer" onclick="window.location.href='custom.html?id=${item.id}'">
+                    <div class="relative overflow-hidden bg-gray-100 aspect-square">
+                        ${badge ? `<div class="absolute top-2 left-2 ${badgeColor} text-white text-xs px-2 py-1 rounded-full font-semibold z-10">${badge}</div>` : ''}
+                        ${item.thumbnail ? 
+                            `<img src="${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">` :
+                            `<div class="w-full h-full flex items-center justify-center p-4 group-hover:scale-110 transition-transform duration-300">
+                                <svg class="w-32 h-32 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>`
+                        }
+                        <div class="absolute bottom-2 right-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs font-medium text-gray-700">
+                            ${typeLabel}
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-sm font-medium text-gray-800 mb-2 line-clamp-2 hover:text-orange-600">${item.name}</h3>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-orange-600 font-bold text-lg">${formattedPrice}</span>
+                        </div>
+                        <div class="flex items-center text-xs text-gray-500 mb-2">
+                            <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                            </svg>
+                            <span class="ml-1">${rating} | Terjual ${sold}+</span>
+                        </div>
+                        <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg text-sm font-medium transition">
+                            Customize Sekarang
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load catalog when page loads
+        document.addEventListener('DOMContentLoaded', loadCatalog);
+    </script>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-12 border-t">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-4">Layanan Pelanggan</h3>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-orange-600">Pusat Bantuan</a></li>
+                        <li><a href="#" class="hover:text-orange-600">Cara Pembelian</a></li>
+                        <li><a href="#" class="hover:text-orange-600">Pengiriman</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-4">Tentang Kami</h3>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-orange-600">Tentang FurniShop</a></li>
+                        <li><a href="#" class="hover:text-orange-600">Karir</a></li>
+                        <li><a href="#" class="hover:text-orange-600">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-4">Pembayaran</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <div class="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">BCA</div>
+                        <div class="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">BNI</div>
+                        <div class="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">OVO</div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-4">Ikuti Kami</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-600 hover:text-orange-600">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-600 hover:text-orange-600">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t mt-8 pt-8 text-center text-sm text-gray-600">
+                <p>&copy; 2024 FurniShop. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
