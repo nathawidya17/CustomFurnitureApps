@@ -1,5 +1,12 @@
 [
   {
+    "id": "hiro_drawer",
+    "name": "Hiro Drawer 2",
+    "file": "./models/frame-hiro-drawer.glb",
+    "thumbnail": "./models/hiro_thumbnail.png",
+    "type": "hiro"
+  },
+  {
     "id": "lemari",
     "name": "Lemari Kayu",
     "file": "./models/lemari.glb",
