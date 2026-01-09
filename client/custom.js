@@ -18,18 +18,17 @@ let numLaci = 1;
 // Mapping Parts
 let hiroParts = { frame: null, laci: null, drawer: null, feet: null }; 
 
+// Variables for Interaction
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
 let scene, camera, renderer, controls, mainCabinet, modelPrototype, rackGroup, modelOriginalBox;
 
 async function init() {
     scene = new THREE.Scene();
-    // 1. BACKGROUND COLOR (Warna Latar Belakang)
-    scene.background = new THREE.Color(0xf0f2f5); // Abu-abu sangat muda (bersih)
-    
-    // 2. FIX BLUR SAAT ZOOM OUT
-    // Sebelumnya (10, 30), diubah jadi (20, 100) agar tidak cepat hilang/putih saat mundur
+    scene.background = new THREE.Color(0xf0f2f5); 
     scene.fog = new THREE.Fog(0xf0f2f5, 20, 100);
 
-    // Default Camera Position
     camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(0, 1.2, 5); 
 
@@ -61,12 +60,10 @@ async function init() {
     spotlight.shadow.mapSize.height = 2048;
     scene.add(spotlight);
 
-    // --- 3. LANTAI & GRID (Floor Setup) ---
-    
-    // A. Lantai Solid (Bukan cuma bayangan)
+    // --- LANTAI & GRID ---
     const groundGeo = new THREE.PlaneGeometry(200, 200);
     const groundMat = new THREE.MeshStandardMaterial({ 
-        color: 0xe5e7eb, // Warna lantai abu muda
+        color: 0xe5e7eb, 
         roughness: 0.8,
         metalness: 0.1,
         side: THREE.DoubleSide
@@ -77,10 +74,7 @@ async function init() {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // B. Grid Helper (Garis-garis lantai)
-    // Ukuran 50, Divisi 50, Warna Garis Tengah, Warna Garis Grid
     const grid = new THREE.GridHelper(50, 50, 0xbdc3c7, 0xdcdde1);
-    // Grid biasanya tenggelam sedikit biar ga flickering sama lantai, atau lantai diturunin dikit
     grid.position.y = 0.001; 
     scene.add(grid);
 
@@ -89,6 +83,11 @@ async function init() {
 
     loadProduct();
     setupEventListeners();
+    
+    // Interaction Listeners
+    window.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+
     animate();
 }
 
@@ -145,14 +144,11 @@ async function loadProduct() {
 
             updateDisplay();
 
-            // --- KAMERA KHUSUS HIRO (Jauh & Tinggi) ---
             const box = new THREE.Box3().setFromObject(mainCabinet);
             const center = new THREE.Vector3();
             box.getCenter(center);
             
-            // Posisi Z=9 (Jauh), Y+1.2 (Agak atas)
             camera.position.set(0, center.y + 1.2, 9); 
-            
             controls.target.copy(center);
             controls.update();
 
@@ -171,7 +167,7 @@ async function loadProduct() {
         } catch (e) { console.error("Gagal muat Hiro:", e); }
 
     } else {
-        // --- LOGIC RAK MODULAR ---
+        // Rack Logic (Modular)
         productType = 'rack';
         let modelPath = './models/rakfix.glb';
         if (modelId.toLowerCase().includes('lemari')) {
@@ -207,7 +203,6 @@ async function loadProduct() {
             modelOriginalBox = new THREE.Box3().setFromObject(modelPrototype);
             updateDisplay();
 
-            // --- AUTO-FIT RAK MODULAR ---
             const box = new THREE.Box3().setFromObject(mainCabinet);
             const size = new THREE.Vector3();
             const center = new THREE.Vector3();
@@ -215,10 +210,8 @@ async function loadProduct() {
             box.getCenter(center);
 
             controls.target.copy(center);
-
             const maxDim = Math.max(size.x, size.y);
             const fitDistance = maxDim * 2.5; 
-
             camera.position.set(0, center.y, fitDistance);
             controls.update();
         });
@@ -234,7 +227,26 @@ function getObjectInfo(obj) {
 
 function updateDisplay() {
     if (!modelPrototype) return;
-    if (rackGroup) mainCabinet.remove(rackGroup);
+
+    // --- STEP 1: SAVE STATE SEBELUM MENGHAPUS OBJECT ---
+    // Kita simpan status "isOpen" dari laci yang lama
+    let drawerStates = {}; // Simpan status berdasarkan index
+    let laciStates = {};
+
+    if (rackGroup) {
+        rackGroup.children.forEach(child => {
+            // Cek apakah ini drawer/laci dan apakah terbuka
+            if (child.userData && child.userData.isOpen) {
+                if (child.userData.type === 'drawer') {
+                    drawerStates[child.userData.id] = true;
+                } else if (child.userData.type === 'laci') {
+                    laciStates[child.userData.id] = true;
+                }
+            }
+        });
+        mainCabinet.remove(rackGroup);
+    }
+
     rackGroup = new THREE.Group();
 
     if (productType === 'hiro') {
@@ -258,9 +270,28 @@ function updateDisplay() {
             
             element.position.y = currentY - elInfo.minY;
             applyMat(element, true);
-            rackGroup.add(element);
+            
+            // Cek apakah sebelumnya terbuka di index ini?
+            const wasOpen = drawerStates[i] || false;
 
-            // GAP LEBIH JAUH (0.05 / 5cm)
+            // UPDATE: Jarak buka jadi 0.9 (Lebih jauh)
+            const openDist = 0.9;
+
+            element.userData = { 
+                type: 'drawer',    // Identitas
+                id: i,             // Index urutan
+                canOpen: true,     
+                isOpen: wasOpen,   // Apply status lama
+                baseZ: 0,          
+                openZ: openDist
+            };
+
+            // Jika statusnya terbuka, langsung posisikan di depan (biar rapih/tidak nge-slide ulang)
+            if (wasOpen) {
+                element.position.z = openDist;
+            }
+            
+            rackGroup.add(element);
             currentY += elInfo.height + 0.05; 
         }
 
@@ -278,8 +309,25 @@ function updateDisplay() {
             
             element.position.y = currentY - elInfo.minY;
             applyMat(element, true);
-            rackGroup.add(element);
 
+            // Cek status lama
+            const wasOpen = laciStates[j] || false;
+            const openDist = 0.9;
+
+            element.userData = { 
+                type: 'laci',
+                id: j,
+                canOpen: true, 
+                isOpen: wasOpen, 
+                baseZ: 0, 
+                openZ: openDist
+            };
+
+            if (wasOpen) {
+                element.position.z = openDist;
+            }
+
+            rackGroup.add(element);
             currentY += elInfo.height + 0.005;
         }
 
@@ -291,13 +339,13 @@ function updateDisplay() {
         
         const scaleY = targetHeight / frameInfo.height;
         frameClone.scale.set(1, scaleY, 1);
-        
         frameClone.position.y = feetInfo.maxY - (frameInfo.minY * scaleY);
 
         applyMat(frameClone, true); 
         rackGroup.add(frameClone);
 
     } else {
+        // --- LOGIC RAK MODULAR (Non-Interactive Opening) ---
         const frameSize = new THREE.Vector3();
         modelOriginalBox.getSize(frameSize);
         const scaleX = customConfig.width / frameSize.x;
@@ -334,6 +382,42 @@ function updateDisplay() {
     const count = (productType === 'hiro') ? (numDrawer + numLaci) : (rackCols * rackRows);
     const finalPrice = (productType === 'cabinet' ? 1 : (count || 1)) * PRICE_PER_UNIT;
     document.getElementById('totalPrice').textContent = `Rp${finalPrice.toLocaleString('id-ID')}`;
+}
+
+// --- INTERAKSI MOUSE ---
+
+function onPointerMove(event) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    
+    if (rackGroup) {
+        const intersects = raycaster.intersectObjects(rackGroup.children, true);
+        let found = false;
+        if (intersects.length > 0) {
+            let target = intersects[0].object;
+            while(target.parent && target.parent !== rackGroup) target = target.parent;
+            if (target.userData && target.userData.canOpen) found = true;
+        }
+        container.style.cursor = found ? 'pointer' : 'default';
+    }
+}
+
+function onPointerDown(event) {
+    if(!rackGroup) return;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(rackGroup.children, true);
+
+    if (intersects.length > 0) {
+        let target = intersects[0].object;
+        while(target.parent && target.parent !== rackGroup) target = target.parent;
+
+        if (target.userData && target.userData.canOpen) {
+            target.userData.isOpen = !target.userData.isOpen;
+        }
+    }
 }
 
 function applyMat(obj, isHiro) {
@@ -374,6 +458,24 @@ function setupEventListeners() {
     });
 }
 
-function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+function animate() { 
+    requestAnimationFrame(animate); 
+    
+    if (rackGroup) {
+        rackGroup.children.forEach(child => {
+            if (child.userData && child.userData.canOpen) {
+                const targetZ = child.userData.isOpen 
+                    ? child.userData.baseZ + child.userData.openZ 
+                    : child.userData.baseZ;                       
+                
+                // Animasi halus setiap frame
+                child.position.z = THREE.MathUtils.lerp(child.position.z, targetZ, 0.1);
+            }
+        });
+    }
+
+    controls.update(); 
+    renderer.render(scene, camera); 
+}
 
 init();
