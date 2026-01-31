@@ -3,28 +3,28 @@
     "id": "hiro_drawer",
     "name": "Hiro Drawer 2",
     "file": "./models/frame-hiro-drawer.glb",
-    "thumbnail": "./models/hiro_thumbnail.png",
+    "thumbnail": "./models/hiro-drawer-2s-c.webp",
     "type": "hiro"
   },
   {
     "id": "lemari",
     "name": "Lemari Kayu",
     "file": "./models/lemari.glb",
-    "thumbnail": "./models/lemariKayu.png",
+    "thumbnail": "./models/lemari2pintukacamasuk.png",
     "type": "cabinet"
   },
   {
     "id": "rak",
     "name": "Rak Modular",
     "file": "./models/rak.glb",
-    "thumbnail": "./models/lemariKayu.png",
+    "thumbnail": "./models/rak-buku.jpg",
     "type": "rack"
   },
   {
     "id": "lemari-kabinet",
     "name": "Lemari Kabinet",
     "file": "./models/frame-lemari-kabinet.glb",
-    "thumbnail": "./models/lemariKabinet.png",
+    "thumbnail": "./models/rak-3-pintu.webp",
     "type": "cabinet"
   }
 ]

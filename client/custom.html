@@ -82,6 +82,22 @@
         </div>
     </div>
 </section>
+<section class="border-t pt-6">
+    <h4 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Warna Furnitur</h4>
+    <div class="flex gap-3">
+        <button onclick="changeProductColor('#ffffff')" class="w-8 h-8 rounded-full border border-gray-300 shadow-sm" style="background-color: #ffffff;"></button>
+        <button onclick="changeProductColor('#5d4037')" class="w-8 h-8 rounded-full border shadow-sm" style="background-color: #5d4037;"></button>
+        <button onclick="changeProductColor('#2c3e50')" class="w-8 h-8 rounded-full border shadow-sm" style="background-color: #2c3e50;"></button>
+        <button onclick="changeProductColor('#e67e22')" class="w-8 h-8 rounded-full border shadow-sm" style="background-color: #e67e22;"></button>
+        <input type="color" id="customColorPicker" oninput="changeProductColor(this.value)" class="w-8 h-8 p-0 border-0 bg-transparent cursor-pointer">
+    </div>
+</section>
+
+<script>
+    function changeProductColor(color) {
+        if (window.appChangeColor) window.appChangeColor(color);
+    }
+</script>
 
             
             </div>

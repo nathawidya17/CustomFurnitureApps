@@ -12,6 +12,7 @@ let productType = 'rack';
 let customConfig = { width: 1.2, height: 1.5, depth: 1.0 };
 let rackCols = 2, rackRows = 3;
 let numDrawer = 2, numLaci = 1, numCabinetRows = 3;
+let currentColor = '#ffffff'; // State warna produk
 
 // --- 3D CORE VARIABLES ---
 let scene, camera, renderer, controls, raycaster, mouse;
@@ -92,6 +93,7 @@ function setupEnvironment() {
         new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.8, metalness: 0.1 })
     );
     ground.rotation.x = -Math.PI / 2;
+    ground.position.y = 0; // Pastikan posisi y=0 sesuai grid
     ground.receiveShadow = true;
     scene.add(ground);
 
@@ -108,18 +110,17 @@ async function loadProduct() {
     const modelId = urlParams.get('id') || 'rak';
     const loader = new GLTFLoader();
 
-    // Reset UI Layout Controls (Injecting HTML)
     const layoutContainer = document.querySelector('#rackLayoutControls .grid');
     document.getElementById('rackLayoutControls').style.display = 'block';
     
     layoutContainer.innerHTML = `
         <div id="colWrapper">
             <label class="block text-gray-600 text-sm font-medium mb-3">Kolom (<span id="rackColsValue">2</span>)</label>
-            <input type="number" id="rackCols" min="1" max="10" value="2" class="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+            <input type="number" id="rackCols" min="1" max="10" value="2" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
         </div>
         <div id="rowWrapper">
             <label id="rowLabel" class="block text-gray-600 text-sm font-medium mb-3">Baris (<span id="rackRowsValue">3</span>)</label>
-            <input type="number" id="rackRows" min="1" max="10" value="3" class="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none">
+            <input type="number" id="rackRows" min="1" max="10" value="3" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
         </div>
     `;
 
@@ -138,9 +139,8 @@ async function loadProduct() {
 async function initHiro(loader) {
     productType = 'hiro';
     customConfig = { width: 0.8, height: 1.0, depth: 0.5 };
-    updateUIValues(80, 100, 50, 2, 3);
+    updateUIValues(80, 100, 50);
     
-    // Custom UI for Hiro
     document.getElementById('colWrapper').querySelector('label').innerHTML = `Tambah Drawer (<span id="drawerVal">${numDrawer}</span>)`;
     const inputDrawer = document.getElementById('rackCols');
     inputDrawer.id = 'inputDrawer';
@@ -228,7 +228,7 @@ async function initStandard(loader, modelId) {
         modelPath = './models/lemari.glb';
         productType = 'cabinet';
         customConfig = { width: 1.2, height: 1.8, depth: 0.6 };
-        updateUIValues(120, 180, 60, 1, 1);
+        updateUIValues(120, 180, 60);
     }
 
     const colInput = document.getElementById('rackCols');
@@ -257,13 +257,9 @@ async function initStandard(loader, modelId) {
     });
 }
 
-/**
- * Update visualisasi 3D di scene
- */
 function updateDisplay() {
     if (!modelPrototype) return;
 
-    // Simpan status open/close saat ini agar tidak ter-reset
     const currentStates = getInteractiveStates();
 
     if (rackGroup) mainCabinet.remove(rackGroup);
@@ -277,11 +273,19 @@ function updateDisplay() {
         buildStandard();
     }
 
-    // Auto-center rackGroup
+    // --- LOGIKA PENGANGKATAN POSISI (REVISI) ---
     const finalBox = new THREE.Box3().setFromObject(rackGroup);
     const center = new THREE.Vector3();
     finalBox.getCenter(center);
-    rackGroup.position.set(-center.x, -finalBox.min.y, -center.z);
+    
+    // Menghitung tinggi objek
+    const size = new THREE.Vector3();
+    finalBox.getSize(size);
+
+
+    const posY = Math.abs(finalBox.min.y) + 0.01; 
+    
+    rackGroup.position.set(-center.x, posY, -center.z);
     
     mainCabinet.add(rackGroup);
     updatePriceUI();
@@ -300,7 +304,6 @@ function buildHiro(states) {
 
     const frameRaw = getObjectInfo(hiroParts.frame);
     
-    // Drawers
     for (let i = 0; i < numDrawer; i++) {
         const el = hiroParts.drawer.clone();
         const info = getObjectInfo(el);
@@ -313,7 +316,6 @@ function buildHiro(states) {
         currentY += info.height + 0.05; 
     }
 
-    // Laci
     for (let j = 0; j < numLaci; j++) {
         const el = hiroParts.laci.clone();
         const info = getObjectInfo(el);
@@ -326,7 +328,6 @@ function buildHiro(states) {
         currentY += info.height + 0.005;
     }
 
-    // Outer Frame (scaled)
     const frame = hiroParts.frame.clone();
     const targetH = Math.max(currentY - feetInfo.maxY, 0.5); 
     const scaleY = targetH / frameRaw.height;
@@ -430,7 +431,6 @@ function getInteractiveStates() {
  * Setup Event Listeners (UI & Interaction)
  */
 function setupEventListeners() {
-    // Slider Dimensi
     ['width', 'height', 'depth'].forEach(id => {
         const el = document.getElementById(id);
         if(el) {
@@ -442,7 +442,6 @@ function setupEventListeners() {
         }
     });
 
-    // Mouse Interaction
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerdown', onPointerDown);
 }
@@ -484,22 +483,37 @@ function onPointerDown() {
 }
 
 /**
- * Utility: Material & Shadow Application
+ * Utility: Material & Shadow Application (DIPERBARUI UNTUK WARNA)
  */
 function applyMat(obj, isHiro) {
     obj.traverse(n => {
         if (n.isMesh) {
             n.castShadow = n.receiveShadow = true;
-            if (isHiro && n.material) {
-                n.material.roughness = 0.5;
-                n.material.metalness = 0.1; 
+            if (n.material) {
+                // Clone material agar warna per-instance bisa unik tanpa merusak model asli
+                n.material = n.material.clone();
+                n.material.color.set(currentColor);
+                
+                if (isHiro) {
+                    n.material.roughness = 0.5;
+                    n.material.metalness = 0.1;
+                }
                 n.material.needsUpdate = true;
-            } else if (n.material) {
-                n.material.color.set(0xffffff);
             }
         }
     });
 }
+
+/**
+ * Fungsi Global untuk mengubah warna (Dipanggil dari HTML)
+ */
+window.appChangeColor = (color) => {
+    currentColor = color;
+    if (rackGroup) {
+        // Terapkan warna ke rackGroup yang sedang aktif di layar
+        applyMat(rackGroup, productType === 'hiro' || productType === 'lemari_kabinet');
+    }
+};
 
 function updatePriceUI() {
     const count = (productType === 'hiro') ? (numDrawer + numLaci) : 
