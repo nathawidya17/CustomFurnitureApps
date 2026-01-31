@@ -19,5 +19,12 @@
     "file": "./models/rak.glb",
     "thumbnail": "./models/lemariKayu.png",
     "type": "rack"
+  },
+  {
+    "id": "lemari-kabinet",
+    "name": "Lemari Kabinet",
+    "file": "./models/frame-lemari-kabinet.glb",
+    "thumbnail": "./models/lemariKabinet.png",
+    "type": "cabinet"
   }
 ]
