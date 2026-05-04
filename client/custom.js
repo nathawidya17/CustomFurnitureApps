@@ -10,8 +10,8 @@ const LERP_SPEED = 0.1;
 // --- STATE APLIKASI ---
 let productType = 'rack';
 let customConfig = { width: 1.2, height: 1.5, depth: 1.0 };
-let rackCols = 2, rackRows = 3;
-let numDrawer = 2, numLaci = 1, numCabinetRows = 3;
+let rackCols = 3, rackRows = 3;
+let numDrawer = 3, numLaci = 1, numCabinetRows = 3;
 let currentColor = '#ffffff'; // State warna produk
 
 // --- 3D CORE VARIABLES ---
@@ -567,5 +567,6 @@ function animate() {
     controls.update(); 
     renderer.render(scene, camera); 
 }
+
 
 init();
