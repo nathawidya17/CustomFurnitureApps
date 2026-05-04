@@ -38,7 +38,7 @@
             </div>
 
             <div class="p-8 space-y-10">
-                <section>
+                <section id="dimensionSection">
                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">DIMENSI</h4>
                     <div class="space-y-6">
                         <div class="control-group">
@@ -71,16 +71,8 @@
 
             <section id="rackLayoutControls">
     <h4 id="layoutTitle" class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">KONFIGURASI LAYOUT</h4>
-    <div class="grid grid-cols-2 gap-6">
-        <div id="colControl">
-            <label class="block text-gray-600 text-sm font-medium mb-3">Kolom (<span id="rackColsValue">2</span>)</label>
-            <input type="number" id="rackCols" min="1" max="5" value="2" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
+    <div class="grid grid-cols-2 gap-6" id="layoutGrid">
         </div>
-        <div id="rowControl">
-            <label id="rowLabel" class="block text-gray-600 text-sm font-medium mb-3">Baris (<span id="rackRowsValue">3</span>)</label>
-            <input type="number" id="rackRows" min="1" max="5" value="3" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
-        </div>
-    </div>
 </section>
 <section class="border-t pt-6">
     <h4 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Warna Furnitur</h4>
@@ -133,20 +125,12 @@
             controls.forEach(item => {
                 const inputEl = document.getElementById(item.input);
                 const displayEl = document.getElementById(item.display);
-
                 if (inputEl && displayEl) {
-                    // Set angka awal saat load
                     displayEl.innerText = inputEl.value;
-
-                    // Update angka saat input berubah
-                    inputEl.addEventListener('input', () => {
-                        displayEl.innerText = inputEl.value;
-                    });
+                    inputEl.addEventListener('input', () => { displayEl.innerText = inputEl.value; });
                 }
             });
         };
-
-        // Jalankan sinkronisasi
         window.addEventListener('DOMContentLoaded', syncValues);
     </script>
 </body>
