@@ -16,7 +16,7 @@ let currentColor = '#ffffff';
 let currentTexture = null; // null = pakai warna solid
 let textureLoader = new THREE.TextureLoader();
 
-let rackCols = 2, rackRows = 3; 
+let rackCols = 3, rackRows = 3; 
 let numDrawer = 2, numLaci = 1;
 let cabinetDoorTypes = Array(10).fill('left'); 
 
@@ -38,7 +38,7 @@ const hiroRak2Parts = {
     kaki: null, 
     drawer: null 
 };
-let numRak2Drawer = 2, numRak2Laci = 3;
+let numRak2Drawer = 2, numRak2Laci = 2;
 
 async function initHiro(loader) {
     productType = 'hiro'; customConfig = { width: 0.8, height: 1.0, depth: 0.5 }; updateUIValues(80, 100, 50);
@@ -513,23 +513,53 @@ if (rakBawah > 0) {
 // --- SECTION 5: PRODUCT MODULE - STANDARD RACK ---
 // ==========================================
 async function initStandard(loader) {
-    productType = 'rack'; let modelPath = './models/rakfix.glb';
-    document.getElementById('rackCols').oninput = (e) => { rackCols = parseInt(e.target.value) || 1; document.getElementById('rackColsValue').innerText = rackCols; updateDisplay(); };
-    document.getElementById('rackRows').oninput = (e) => { rackRows = parseInt(e.target.value) || 1; document.getElementById('rackRowsValue').innerText = rackRows; updateDisplay(); };
-    loader.load(modelPath, (gltf) => { modelPrototype = gltf.scene; modelOriginalBox = new THREE.Box3().setFromObject(modelPrototype); updateDisplay(); focusCamera(); });
+    productType = 'rack'; 
+    customConfig = { width: 1.125, height: 1.125, depth: 0.400 };
+    updateUIValues(113, 113, 40);
+    
+    document.getElementById('rackCols').oninput = (e) => { 
+        rackCols = parseInt(e.target.value) || 1; 
+        document.getElementById('rackColsValue').innerText = rackCols; 
+        updateDisplay(); 
+    };
+    document.getElementById('rackRows').oninput = (e) => { 
+        rackRows = parseInt(e.target.value) || 1; 
+        document.getElementById('rackRowsValue').innerText = rackRows; 
+        updateDisplay(); 
+    };
+
+    loader.load('./models/rakfix.glb', (gltf) => { 
+        modelPrototype = gltf.scene; 
+        modelOriginalBox = new THREE.Box3().setFromObject(modelPrototype); 
+        updateDisplay(); 
+        focusCamera(); 
+    });
 }
 
 function buildStandard() {
     const size = new THREE.Vector3(); modelOriginalBox.getSize(size);
-    const sX = customConfig.width / size.x, sY = customConfig.height / size.y, sZ = customConfig.depth / size.z;
+    const sX = customConfig.width / size.x; 
+    const sY = customConfig.height / size.y; 
+    const sZ = customConfig.depth / size.z; // scale depth normal lagi
+    
     if (productType === 'rack') {
         const offX = (rackCols > 1) ? 0.042 : 0, offY = (rackRows > 1) ? 0.095 : 0;
-        for (let r = 0; r < rackRows; r++) { for (let c = 0; c < rackCols; c++) {
-            const clone = modelPrototype.clone(); clone.scale.set(sX, sY, sZ); clone.position.set(c * (customConfig.width - offX), r * (customConfig.height - offY), 0); applyMat(clone, false); rackGroup.add(clone);
-        }}
-    } else { const single = modelPrototype.clone(); single.scale.set(sX, sY, sZ); applyMat(single, false); rackGroup.add(single); }
+        for (let r = 0; r < rackRows; r++) { 
+            for (let c = 0; c < rackCols; c++) {
+                const clone = modelPrototype.clone(); 
+                clone.scale.set(sX, sY, sZ); 
+                clone.position.set(c * (customConfig.width - offX), r * (customConfig.height - offY), 0); 
+                applyMat(clone, false); 
+                rackGroup.add(clone);
+            }
+        }
+    } else { 
+        const single = modelPrototype.clone(); 
+        single.scale.set(sX, sY, sZ); 
+        applyMat(single, false); 
+        rackGroup.add(single); 
+    }
 }
-
 // ==========================================
 // --- SECTION 6: CONTROLLER & LOGIC ROUTING ---
 // ==========================================
@@ -753,8 +783,17 @@ function getInteractiveStates() {
 }
 
 function setupEventListeners() {
-    ['width', 'height', 'depth'].forEach(id => { const el = document.getElementById(id); if(el) el.oninput = (e) => { customConfig[id] = parseFloat(e.target.value) / 100; document.getElementById(id + 'Value').textContent = e.target.value; updateDisplay(); }; });
     window.addEventListener('pointermove', (event) => {
+        ['width', 'height', 'depth'].forEach(id => { 
+    const el = document.getElementById(id); 
+    if (el) el.oninput = (e) => { 
+        const val = parseFloat(e.target.value);
+        customConfig[id] = val / 100; 
+        document.getElementById(id + 'Value').textContent = Math.round(val); 
+        updateDisplay(); 
+        updatePriceUI();
+    }; 
+});
         const rect = renderer.domElement.getBoundingClientRect(); mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1; mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(rackGroup?.children || [], true);
         let isHover = false;
@@ -811,17 +850,51 @@ window.appChangeTexture = (texturePath) => {
 };
 
 function updatePriceUI() { 
-    let count = 1; 
-    if (productType === 'hiro') count = numDrawer + numLaci; 
-    else if (productType === 'hiro_rak2drawer') count = numRak2Drawer + numRak2Laci; // <-- tambah ini
-    else if (productType === 'lemari_kabinet' || productType === 'rack') count = rackCols * rackRows;
+    let finalPrice = 0;
+
+    if (productType === 'hiro') {
+        finalPrice = (numDrawer + numLaci) * PRICE_PER_UNIT;
+    } 
+    else if (productType === 'hiro_rak2drawer') {
+        finalPrice = (numRak2Drawer + numRak2Laci) * PRICE_PER_UNIT;
+    } 
+    else if (productType === 'lemari_kabinet') {
+        finalPrice = (rackCols * rackRows) * PRICE_PER_UNIT;
+    }
+    else if (productType === 'rack') {
+        const BASE_PRICE    = 300000; // harga dasar 3x3
+        const BASE_COLS     = 3;
+        const BASE_ROWS     = 3;
+        const PRICE_PER_RAK = 25000;  // per 1 rak tambahan
+        const PRICE_PER_10CM = 20000; // per 10cm tambahan
+
+        // Tambahan dari ukuran (per 10cm dari default 113cm)
+        const defaultCm  = 113;
+        const defaultDepthCm = 40;
+        const currentWcm = Math.round(customConfig.width  * 100);
+        const currentHcm = Math.round(customConfig.height * 100);
+        const currentDcm = Math.round(customConfig.depth  * 100);
+        const stepsW     = Math.max(0, Math.floor((currentWcm - defaultCm) / 10));
+        const stepsH     = Math.max(0, Math.floor((currentHcm - defaultCm) / 10));
+        const stepsD     = Math.max(0, Math.floor((currentDcm - defaultDepthCm) / 10));
+        const dimExtra   = (stepsW + stepsH + stepsD) * PRICE_PER_10CM;
+
+        // Tambahan dari jumlah rak
+        const totalRaks  = rackCols * rackRows;
+        const baseRaks   = BASE_COLS * BASE_ROWS; // 9
+        const extraRaks  = Math.max(0, totalRaks - baseRaks);
+        const rakExtra   = extraRaks * PRICE_PER_RAK;
+
+        finalPrice = BASE_PRICE + dimExtra + rakExtra;
+    }
     else if (productType === 'lemari') {
-        count = 3; 
+        let count = 3; 
         count += (lemariConfig.leftRak + lemariConfig.rightRakTop + lemariConfig.rightRakBottom) * 0.2; 
         if (lemariConfig.rodPosition !== 'tidak_ada') count += 0.5;
+        finalPrice = count * PRICE_PER_UNIT;
     }
-    const finalPrice = count * PRICE_PER_UNIT; 
-    document.getElementById('totalPrice').textContent = `Rp${finalPrice.toLocaleString('id-ID')}`; 
+
+    document.getElementById('totalPrice').textContent = `Rp${finalPrice.toLocaleString('id-ID')}`;
 }
 
 function updateUIValues(w, h, d) { 
@@ -840,10 +913,9 @@ function focusCamera(dist) {
     box.getCenter(center); 
     box.getSize(size); 
     controls.target.copy(center); 
-    camera.position.set(0, center.y, dist || Math.max(size.x, size.y) * 2.5); 
+    const d = dist || Math.max(size.x, size.y) * 2.5;
     controls.update(); 
 }
-
 function animate() { 
     requestAnimationFrame(animate); 
     if (rackGroup) rackGroup.traverse(c => {
