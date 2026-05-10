@@ -13,6 +13,8 @@ let mainCabinet, rackGroup, modelPrototype, modelOriginalBox;
 let productType = 'rack';
 let customConfig = { width: 1.2, height: 1.5, depth: 1.0 };
 let currentColor = '#ffffff';
+let currentTexture = null; // null = pakai warna solid
+let textureLoader = new THREE.TextureLoader();
 
 let rackCols = 2, rackRows = 3; 
 let numDrawer = 2, numLaci = 1;
@@ -29,6 +31,14 @@ let lemariConfig = {
 // --- SECTION 2: PRODUCT MODULE - HIRO ---
 // ==========================================
 const hiroParts = { frame: null, laci: null, drawer: null, feet: null };
+const hiroRak2Parts = { 
+    frameAtas: null, 
+    frameBawah: null, 
+    rak: null, 
+    kaki: null, 
+    drawer: null 
+};
+let numRak2Drawer = 2, numRak2Laci = 3;
 
 async function initHiro(loader) {
     productType = 'hiro'; customConfig = { width: 0.8, height: 1.0, depth: 0.5 }; updateUIValues(80, 100, 50);
@@ -69,6 +79,109 @@ function buildHiro(states) {
     const scaleY = targetH / frameRaw.height; frame.scale.set(1, scaleY, 1);
     frame.position.y = feetInfo.maxY - (frameRaw.minY * scaleY);
     applyMat(frame, true); rackGroup.add(frame);
+}
+async function initHiroRak2(loader) {
+    productType = 'hiro_rak2drawer'; 
+    customConfig = { width: 0.8, height: 1.2, depth: 0.5 }; 
+    updateUIValues(80, 120, 50);
+    try {
+        const [fAtas, fBawah, rk, kk, dr] = await Promise.all([
+            loader.loadAsync('./models/frameatashirorak2drawer.glb'),
+            loader.loadAsync('./models/framebawahhirorak2drawer.glb'),
+            loader.loadAsync('./models/rakhirorak2drawer.glb'),
+            loader.loadAsync('./models/kakihirorak2drawer.glb'),
+            loader.loadAsync('./models/drawerhirorak2drawer.glb'),
+        ]);
+        hiroRak2Parts.frameAtas  = fAtas.scene; 
+        hiroRak2Parts.frameBawah = fBawah.scene; 
+        hiroRak2Parts.rak        = rk.scene; 
+        hiroRak2Parts.kaki       = kk.scene; 
+        hiroRak2Parts.drawer     = dr.scene;
+        modelPrototype   = fAtas.scene; 
+        modelOriginalBox = new THREE.Box3().setFromObject(fAtas.scene);
+
+        document.getElementById('inputDrawer').oninput = (e) => { 
+            numRak2Drawer = Math.max(2, parseInt(e.target.value) || 2);
+            document.getElementById('inputDrawer').value = numRak2Drawer;
+            document.getElementById('drawerVal').innerText = numRak2Drawer; 
+            updateDisplay(); 
+        };
+        document.getElementById('inputLaci').oninput = (e) => { 
+            numRak2Laci = Math.max(1, parseInt(e.target.value) || 1);
+            document.getElementById('inputLaci').value = numRak2Laci;
+            document.getElementById('laciVal').innerText = numRak2Laci; 
+            updateDisplay(); 
+        };
+
+        updateDisplay(); focusCamera(9);
+    } catch (e) { console.error("HiroRak2 Load Error:", e); }
+}
+
+function buildHiroRak2(states) {
+    const GAP = 0.016;    // gap antar drawer
+    const RAK_GAP = 2; // gap antar laci dan frame bawah ke laci pertama
+
+    // --- 1. KAKI ---
+    const kaki = hiroRak2Parts.kaki.clone(); 
+    applyMat(kaki, true); 
+    rackGroup.add(kaki);
+    const kakiInfo = getObjectInfo(kaki); 
+    let currentY = kakiInfo.maxY + 0.005;
+
+    // --- 2. FRAME BAWAH + DRAWER ---
+    const frameBawahRaw = getObjectInfo(hiroRak2Parts.frameBawah);
+    const drawerRaw     = getObjectInfo(hiroRak2Parts.drawer);
+
+    const totalDrawerH = (drawerRaw.height * numRak2Drawer) + (GAP * (numRak2Drawer - 1));
+    const scaleYBawah  = totalDrawerH / frameBawahRaw.height;
+
+    const frameBawah = hiroRak2Parts.frameBawah.clone();
+    frameBawah.scale.set(1, scaleYBawah, 1);
+    frameBawah.position.y = currentY - (frameBawahRaw.minY * scaleYBawah);
+    applyMat(frameBawah, true); 
+    rackGroup.add(frameBawah);
+
+    let drawerY = currentY;
+    for (let i = 0; i < numRak2Drawer; i++) {
+        const dr = hiroRak2Parts.drawer.clone(); 
+        const info = getObjectInfo(dr);
+        dr.position.y = drawerY - info.minY;
+        const isOpen = states.drawer[`d_${i}`] || false;
+        dr.userData = { type: 'drawer', id: `d_${i}`, canOpen: true, isOpen, baseZ: 0, openZ: 0.4 };
+        if (isOpen) dr.position.z = 0.4;
+        applyMat(dr, true); 
+        rackGroup.add(dr);
+        drawerY += info.height + GAP;
+    }
+
+    currentY += totalDrawerH + GAP;
+
+    // --- 3. FRAME ATAS + LACI ---
+    const frameAtasRaw = getObjectInfo(hiroRak2Parts.frameAtas);
+    const rakRaw       = getObjectInfo(hiroRak2Parts.rak);
+
+    // totalLaciH: setiap laci punya RAK_GAP di bawahnya + RAK_GAP terakhir di atas
+    const totalLaciH = (rakRaw.height * numRak2Laci) + (RAK_GAP * (numRak2Laci + 1));
+    const scaleYAtas = totalLaciH / frameAtasRaw.height;
+
+    // Frame atas dimulai dari currentY
+    const frameAtas = hiroRak2Parts.frameAtas.clone();
+    frameAtas.scale.set(1, scaleYAtas, 1);
+    frameAtas.position.y = currentY - (frameAtasRaw.minY * scaleYAtas);
+    applyMat(frameAtas, true); 
+    rackGroup.add(frameAtas);
+
+    // Laci pertama mulai dari currentY + RAK_GAP (jarak dari frame bawah)
+    let laciY = currentY + RAK_GAP;
+    for (let j = 0; j < numRak2Laci; j++) {
+        const rk = hiroRak2Parts.rak.clone(); 
+        const info = getObjectInfo(rk);
+        rk.position.y = laciY - info.minY;
+        rk.userData = { type: 'laci', id: `l_${j}`, canOpen: false };
+        applyMat(rk, true); 
+        rackGroup.add(rk);
+        laciY += info.height + RAK_GAP;
+    }
 }
 
 // ==========================================
@@ -496,6 +609,26 @@ async function loadProduct() {
         `; 
         await initLemari(loader);
     } 
+ else if (modelId === 'hiro_rak2drawer') {
+    if(dimensionSection) dimensionSection.style.display = 'none'; 
+    layoutGrid.innerHTML = `
+        <div id="colWrapper">
+            <label class="block text-gray-600 text-sm font-medium mb-3">
+                Jumlah Drawer (<span id="drawerVal">${numRak2Drawer}</span>)
+            </label>
+            <input type="number" id="inputDrawer" min="2" max="6" value="${numRak2Drawer}" 
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
+        </div>
+        <div id="rowWrapper">
+            <label class="block text-gray-600 text-sm font-medium mb-3">
+                Jumlah Laci Kosong (<span id="laciVal">${numRak2Laci}</span>)
+            </label>
+            <input type="number" id="inputLaci" min="1" max="8" value="${numRak2Laci}" 
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
+        </div>
+    `; 
+    await initHiroRak2(loader);
+}
     else {
         if(dimensionSection) dimensionSection.style.display = 'block'; 
         layoutGrid.innerHTML = `<div id="colWrapper"><label class="block text-gray-600 text-sm font-medium mb-3">Kolom (<span id="rackColsValue">${rackCols}</span>)</label><input type="number" id="rackCols" min="1" max="10" value="${rackCols}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div><div id="rowWrapper"><label id="rowLabel" class="block text-gray-600 text-sm font-medium mb-3">Baris (<span id="rackRowsValue">${rackRows}</span>)</label><input type="number" id="rackRows" min="1" max="10" value="${rackRows}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div>`; 
@@ -508,6 +641,7 @@ function updateDisplay() {
     if (rackGroup) mainCabinet.remove(rackGroup); rackGroup = new THREE.Group();
     
     if (productType === 'hiro') buildHiro(currentStates); 
+    else if (productType === 'hiro_rak2drawer') buildHiroRak2(currentStates); // <-- tambah ini
     else if (productType === 'lemari_kabinet') buildCabinet(currentStates); 
     else if (productType === 'lemari') buildLemari(currentStates); 
     else buildStandard();
@@ -522,26 +656,90 @@ function updateDisplay() {
 async function init() { setupScene(); setupLights(); setupEnvironment(); mainCabinet = new THREE.Group(); scene.add(mainCabinet); await loadProduct(); setupEventListeners(); animate(); }
 
 function setupScene() {
-    scene = new THREE.Scene(); scene.background = new THREE.Color(0x94a3b8); scene.fog = new THREE.Fog(0x94a3b8, 20, 100); 
-    camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000); camera.position.set(0, 1.2, 5);
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.2; 
+    scene = new THREE.Scene(); 
+    scene.background = new THREE.Color(0xd9d5ce);
+    scene.fog = new THREE.Fog(0xd9d5ce, 20, 60);
+    
+    camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000); 
+    camera.position.set(0, 1.2, 5);
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); 
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio); 
+    renderer.shadowMap.enabled = true; 
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace; 
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0; 
     container.appendChild(renderer.domElement);
-    controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.dampingFactor = 0.08; controls.target.set(0, 0.8, 0);
-    raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
+    controls = new OrbitControls(camera, renderer.domElement); 
+    controls.enableDamping = true; 
+    controls.dampingFactor = 0.08; 
+    controls.target.set(0, 0.8, 0);
+    raycaster = new THREE.Raycaster(); 
+    mouse = new THREE.Vector2();
 }
 
 function setupLights() {
-    scene.add(new THREE.AmbientLight(0xffffff, 0.8)); scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.6)); 
-    const spotlight = new THREE.DirectionalLight(0xffffff, 1.2); spotlight.position.set(5, 10, 7); spotlight.castShadow = true; spotlight.shadow.mapSize.set(2048, 2048); scene.add(spotlight);
+    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xaaaaaa, 0.6));
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5); 
+    keyLight.position.set(4, 10, 6); 
+    keyLight.castShadow = true; 
+    keyLight.shadow.mapSize.set(4096, 4096);
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 50;
+    keyLight.shadow.camera.left = -8;
+    keyLight.shadow.camera.right = 8;
+    keyLight.shadow.camera.top = 8;
+    keyLight.shadow.camera.bottom = -8;
+    keyLight.shadow.bias = -0.001;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(-6, 4, 2);
+    scene.add(fillLight);
 }
 
 function setupEnvironment() {
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.8, metalness: 0.1 }));
-    ground.rotation.x = -Math.PI / 2; ground.position.y = 0; ground.receiveShadow = true; scene.add(ground);
-    const grid = new THREE.GridHelper(50, 50, 0x94a3b8, 0x64748b); grid.position.y = 0.001; scene.add(grid);
+    // --- LANTAI ABU GELAP ---
+    const floorMat = new THREE.MeshStandardMaterial({ 
+        color: 0x8a8680,
+        roughness: 0.9, 
+        metalness: 0.0,
+    });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // --- TEMBOK BELAKANG ABU MUDA ---
+    const wallMat = new THREE.MeshStandardMaterial({ 
+        color: 0xd9d5ce,
+        roughness: 1.0, 
+        metalness: 0.0 
+    });
+    const wallBack = new THREE.Mesh(new THREE.PlaneGeometry(40, 16), wallMat);
+    wallBack.position.set(0, 8, -7);
+    wallBack.receiveShadow = true;
+    scene.add(wallBack);
+
+    const wallLeft = new THREE.Mesh(new THREE.PlaneGeometry(40, 16), wallMat.clone());
+    wallLeft.rotation.y = Math.PI / 2;
+    wallLeft.position.set(-7, 8, 0);
+    wallLeft.receiveShadow = true;
+    scene.add(wallLeft);
+
+    // --- GARIS PERTEMUAN LANTAI & TEMBOK ---
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0x7a7670, roughness: 1.0 });
+    const edgeBack = new THREE.Mesh(new THREE.BoxGeometry(40, 0.02, 0.05), edgeMat);
+    edgeBack.position.set(0, 0.01, -7);
+    scene.add(edgeBack);
+
+
 }
+
 
 function getObjectInfo(obj) { const box = new THREE.Box3().setFromObject(obj); const size = new THREE.Vector3(); box.getSize(size); return { height: size.y, minY: box.min.y, maxY: box.max.y }; }
 
@@ -574,11 +772,22 @@ function applyMat(obj, isHiro) {
         if (n.isMesh) { 
             n.castShadow = n.receiveShadow = true; 
             if (n.material) { 
-                n.material = n.material.clone(); n.material.side = THREE.DoubleSide; n.material.transparent = false; n.material.opacity = 1.0;
+                n.material = n.material.clone(); 
+                n.material.side = THREE.DoubleSide; 
+                n.material.transparent = false; 
+                n.material.opacity = 1.0;
                 const r = n.material.color.r, g = n.material.color.g, b = n.material.color.b;
                 const isGrey = (Math.abs(r - g) < 0.05 && Math.abs(g - b) < 0.05 && r < 0.85); 
                 const isKnobName = (n.name + " " + n.material.name).toLowerCase().match(/handle|knob|gagang|kenop|abu|grey|bulat/);
-                if (!isGrey && !isKnobName) { n.material.color.set(currentColor); }
+                if (!isGrey && !isKnobName) { 
+                    if (currentTexture) {
+                        n.material.map = currentTexture;
+                        n.material.color.set('#ffffff'); // reset warna biar tekstur keliatan
+                    } else {
+                        n.material.map = null;
+                        n.material.color.set(currentColor);
+                    }
+                }
                 if (isHiro) { n.material.roughness = 0.5; n.material.metalness = 0.1; } 
                 n.material.needsUpdate = true; 
             } 
@@ -586,18 +795,33 @@ function applyMat(obj, isHiro) {
     });
 }
 
-window.appChangeColor = (color) => { currentColor = color; if (rackGroup) applyMat(rackGroup, productType === 'hiro' || productType === 'lemari_kabinet' || productType === 'lemari'); };
+window.appChangeColor = (color) => { 
+    currentColor = color; 
+    currentTexture = null;
+    if (rackGroup) applyMat(rackGroup, productType === 'hiro' || productType === 'lemari_kabinet' || productType === 'lemari'); 
+};
+
+window.appChangeTexture = (texturePath) => {
+    currentTexture = textureLoader.load(texturePath, (tex) => {
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(2, 2); // tile tekstur
+        tex.colorSpace = THREE.SRGBColorSpace;
+        if (rackGroup) applyMat(rackGroup, productType === 'hiro' || productType === 'lemari_kabinet' || productType === 'lemari');
+    });
+};
 
 function updatePriceUI() { 
     let count = 1; 
     if (productType === 'hiro') count = numDrawer + numLaci; 
+    else if (productType === 'hiro_rak2drawer') count = numRak2Drawer + numRak2Laci; // <-- tambah ini
     else if (productType === 'lemari_kabinet' || productType === 'rack') count = rackCols * rackRows;
     else if (productType === 'lemari') {
         count = 3; 
         count += (lemariConfig.leftRak + lemariConfig.rightRakTop + lemariConfig.rightRakBottom) * 0.2; 
         if (lemariConfig.rodPosition !== 'tidak_ada') count += 0.5;
     }
-    const finalPrice = count * PRICE_PER_UNIT; document.getElementById('totalPrice').textContent = `Rp${finalPrice.toLocaleString('id-ID')}`; 
+    const finalPrice = count * PRICE_PER_UNIT; 
+    document.getElementById('totalPrice').textContent = `Rp${finalPrice.toLocaleString('id-ID')}`; 
 }
 
 function updateUIValues(w, h, d) { 

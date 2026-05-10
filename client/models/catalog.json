@@ -7,6 +7,13 @@
     "type": "hiro"
   },
   {
+    "id": "hiro_rak2drawer",
+    "name": "Hiro 2 Rak 2 Drawer",
+    "file": "./models/framehirorak2drawer.glb",
+    "thumbnail": "./models/hiro 3 Rak 2 Drawer.png",
+    "type": "hiro"
+  },
+  {
     "id": "lemari",
     "name": "Lemari Kayu",
     "file": "./models/lemari.glb",

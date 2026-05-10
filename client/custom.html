@@ -75,15 +75,98 @@
         </div>
 </section>
 <section class="border-t pt-6">
-    <h4 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Warna Furnitur</h4>
-    <div class="flex gap-3">
-        <button onclick="changeProductColor('#ffffff')" class="w-8 h-8 rounded-full border border-gray-300 shadow-sm" style="background-color: #ffffff;"></button>
-        <button onclick="changeProductColor('#5d4037')" class="w-8 h-8 rounded-full border shadow-sm" style="background-color: #5d4037;"></button>
-        <button onclick="changeProductColor('#2c3e50')" class="w-8 h-8 rounded-full border shadow-sm" style="background-color: #2c3e50;"></button>
-        <button onclick="changeProductColor('#e67e22')" class="w-8 h-8 rounded-full border shadow-sm" style="background-color: #e67e22;"></button>
-        <input type="color" id="customColorPicker" oninput="changeProductColor(this.value)" class="w-8 h-8 p-0 border-0 bg-transparent cursor-pointer">
+    <h4 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Finishing</h4>
+    
+    <!-- Toggle PVC / HPL -->
+    <div class="flex gap-2 mb-4">
+        <button id="btnPVC" onclick="setFinishingType('pvc')" 
+            class="flex-1 py-2 rounded-lg text-sm font-semibold border-2 border-[#e67e22] bg-[#e67e22] text-white transition-all">
+            PVC
+        </button>
+        <button id="btnHPL" onclick="setFinishingType('hpl')" 
+            class="flex-1 py-2 rounded-lg text-sm font-semibold border-2 border-gray-200 bg-white text-gray-500 transition-all">
+            HPL
+        </button>
+    </div>
+
+    <!-- Opsi Tekstur PVC -->
+    <div id="pvcOptions" class="grid grid-cols-3 gap-2">
+        <button onclick="selectTexture('pvc', './models/tekstur/warna putih.jpg', this)" 
+                class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+                <img src="./models/tekstur/warna putih.jpg" class="w-full h-14 object-cover rounded-md"/>
+                <span class="text-[10px] text-gray-500 font-medium">Putih </span>   
+        </button>
+        <button onclick="selectTexture('pvc', './models/tekstur/warna abu.avif', this)" 
+            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+            <img src="./models/tekstur/warna abu.avif" class="w-full h-14 object-cover rounded-md"/>
+            <span class="text-[10px] text-gray-500 font-medium">Abu</span>
+        </button>
+        <button onclick="selectTexture('pvc', './models/tekstur/summer blue.avif', this)" 
+            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+            <img src="./models/tekstur/summer blue.avif" class="w-full h-14 object-cover rounded-md"/>
+            <span class="text-[10px] text-gray-500 font-medium">Summer Blue</span>
+        </button>
+         <button onclick="selectTexture('pvc', './models/tekstur/ultramarine.jpg', this)" 
+            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+            <img src="./models/tekstur/ultramarine.jpg" class="w-full h-14 object-cover rounded-md"/>
+            <span class="text-[10px] text-gray-500 font-medium">Ultramarine</span>
+        </button>
+        <button onclick="selectTexture('pvc', './models/tekstur/kayu03.jpg', this)" 
+            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+            <img src="./models/tekstur/kayu03.jpg" class="w-full h-14 object-cover rounded-md"/>
+            <span class="text-[10px] text-gray-500 font-medium">Motif Kayu</span>
+        </button>
+        
+    </div>
+
+    <!-- Opsi Tekstur HPL -->
+    <div id="hplOptions" class="grid grid-cols-3 gap-2 hidden">
+        <button onclick="selectTexture('hpl', './models/tekstur/oak_putih.jpg', this)" 
+            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+            <img src="./models/tekstur/oak_putih.jpg" class="w-full h-14 object-cover rounded-md"/>
+            <span class="text-[10px] text-gray-500 font-medium">Oak Putih</span>
+        </button>
+        <button onclick="selectTexture('hpl', './models/tekstur/oak_abucorak.png', this)" 
+            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+            <img src="./models/tekstur/oak_abucorak.png" class="w-full h-14 object-cover rounded-md"/>
+            <span class="text-[10px] text-gray-500 font-medium">Abu Terang</span>
+        </button>
+        <button onclick="selectTexture('hpl', './models/tekstur/oak_gelap.png', this)" 
+            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
+            <img src="./models/tekstur/oak_gelap.png" class="w-full h-14 object-cover rounded-md"/>
+            <span class="text-[10px] text-gray-500 font-medium">Abu Gelap</span>
+        </button>
+        
     </div>
 </section>
+
+<script>
+    function changeProductColor(color) {
+        if (window.appChangeColor) window.appChangeColor(color);
+    }
+
+    function setFinishingType(type) {
+        const isPVC = type === 'pvc';
+        document.getElementById('pvcOptions').classList.toggle('hidden', !isPVC);
+        document.getElementById('hplOptions').classList.toggle('hidden', isPVC);
+        document.getElementById('btnPVC').className = `flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${isPVC ? 'border-[#e67e22] bg-[#e67e22] text-white' : 'border-gray-200 bg-white text-gray-500'}`;
+        document.getElementById('btnHPL').className = `flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${!isPVC ? 'border-[#e67e22] bg-[#e67e22] text-white' : 'border-gray-200 bg-white text-gray-500'}`;
+        // clear selected state
+        document.querySelectorAll('.texture-btn').forEach(b => b.classList.remove('border-[#e67e22]', '!border-[#e67e22]'));
+    }
+
+    function selectTexture(type, path, btn) {
+        // highlight selected
+        const container = type === 'pvc' ? 'pvcOptions' : 'hplOptions';
+        document.querySelectorAll(`#${container} .texture-btn`).forEach(b => {
+            b.classList.remove('border-[#e67e22]');
+            b.classList.add('border-transparent');
+        });
+        btn.classList.remove('border-transparent');
+        btn.classList.add('border-[#e67e22]');
+        if (window.appChangeTexture) window.appChangeTexture(path);
+    }
+</script>
 
 <script>
     function changeProductColor(color) {
