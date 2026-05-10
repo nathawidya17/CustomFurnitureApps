@@ -350,20 +350,38 @@ function buildLemari(states) {
         addRod(leftCenterX, rodY); 
         distributeRacks(leftCenterX, intMinY, splitY, actualRak);
     }
-    else if (pos === 'tengah') {
-        const rodY = splitY; 
-        addRod(leftCenterX, rodY); 
-        if (actualRak > 0) distributeRacks(leftCenterX, rodY + 0.15, intMaxY, actualRak);
+   else if (pos === 'tengah') {
+    const rodY = splitY; 
+    addRod(leftCenterX, rodY); 
+    if (actualRak > 0) {
+        const startY = rodY + 0.3; // jarak lebih jauh dari gantungan
+        const endY = intMaxY - 0.05; // sedikit margin dari atas
+        const spacing = (endY - startY) / actualRak; // bagi rata tanpa +1 biar lebih longgar
+        for (let i = 0; i < actualRak; i++) {
+            addRak(leftCenterX, startY + (spacing * i));
+        }
     }
-    else if (pos === 'atas_tengah') {
-        const rodY = splitY + ((intMaxY - splitY) / 2); 
-        addRod(leftCenterX, rodY);
-        let rakBawah = Math.min(1, actualRak);
-        let rakAtas = Math.max(0, actualRak - 1); 
-        
-        if (rakBawah > 0) addRak(leftCenterX, splitY); 
-        if (rakAtas > 0) distributeRacks(leftCenterX, rodY + 0.15, intMaxY, rakAtas);
+}
+else if (pos === 'atas_tengah') {
+    const rodY = splitY + ((intMaxY - splitY) / 2); 
+    addRod(leftCenterX, rodY);
+    
+    // 1 rak di atas gantungan
+    if (actualRak >= 1) {
+        addRak(leftCenterX, rodY + 0.15);
     }
+    
+    // Sisa rak di bawah, jauh dari gantungan (ruang baju panjang)
+   const rakBawah = Math.max(0, actualRak - 1);
+if (rakBawah > 0) {
+    const bawahEnd = intMinY + ((rodY - intMinY) * 0.6); // hanya 40% bawah dari zona gantungan
+    const bawahStart = intMinY + 0.12;
+    const spacing = (bawahEnd - bawahStart) / (rakBawah + 1);
+    for (let i = 1; i <= rakBawah; i++) {
+        addRak(leftCenterX, bawahStart + (spacing * i));
+    }
+}
+}
 
     // --- RUANG KANAN ---
     if (lemariConfig.rightRakTop >= 1) {
