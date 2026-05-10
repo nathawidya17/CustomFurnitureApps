@@ -99,181 +99,95 @@ async function initCabinet(loader) {
 }
 
 function buildCabinet(states) {
-    const size = new THREE.Vector3();
-    modelOriginalBox.getSize(size);
+    const size = new THREE.Vector3(); modelOriginalBox.getSize(size);
+    const wallThick = 0.015; // Ketebalan dinding frame (1.5cm)
+    
+    // Offset supaya pas ditumpuk / dijejer frame-nya nggak jadi double tebal
+    const overlapX = size.x - wallThick;
+    const overlapY = size.y - wallThick;
 
     for (let r = 0; r < rackRows; r++) {
         for (let c = 0; c < rackCols; c++) {
-
-            const unit = new THREE.Group();
-
-            // FRAME
-            const frame = cabinetParts.frame.clone();
-            applyMat(frame, true);
-            unit.add(frame);
+            const unit = new THREE.Group(); const frame = cabinetParts.frame.clone(); applyMat(frame, true); unit.add(frame);
+            const hinge = new THREE.Group(); const unitId = `${r}_${c}`; 
+            const isOpen = states.cabinet[unitId] || false; const doorType = cabinetDoorTypes[c] || 'left'; 
 
             const fBox = new THREE.Box3().setFromObject(frame);
+            const pivotZ = fBox.max.z;
 
-            const unitId = `${r}_${c}`;
-            const isOpen = states.cabinet[unitId] || false;
-            const doorType = cabinetDoorTypes[c] || 'left';
+            // Target ukuran pintu (lebar frame dikurangi kayu, ditambah sedikit overlap biar ga bolong)
+            const targetW = size.x - 0.02; 
+            const targetH = size.y - 0.02;
+            const innerCenterY = (fBox.max.y + fBox.min.y) / 2;
 
-            const pivotZ = fBox.max.z + 0.005;
-
-            // =========================
-            // PINTU KIRI
-            // =========================
+            // WRAPPER ANTI OFFSIDE & ANTI BOLONG
             if (doorType === 'left') {
-
-                const hinge = new THREE.Group();
-
-                const door = cabinetParts.doorLeft.clone();
-                applyMat(door, true);
-
-                // BESARKAN dikit biar overlap
-                door.scale.x = 1.12;
-
-                const dBox = new THREE.Box3().setFromObject(door);
-
-                // pivot mepet frame kiri
-                hinge.position.set(
-                    fBox.min.x - 0.005,
-                    0,
-                    pivotZ
-                );
-
-                // tarik pintu keluar sedikit
-                door.position.set(
-                    -dBox.min.x - 0.03,
-                    0,
-                    -dBox.max.z + 0.1
-                );
-
-                hinge.userData = {
-                    type: 'cabinet_door',
-                    id: unitId,
-                    canOpen: true,
-                    isOpen,
-                    baseRotation: 0,
-                    openRotation: -Math.PI / 1.8
-                };
-
-                if (isOpen) {
-                    hinge.rotation.y = hinge.userData.openRotation;
-                }
-
-                hinge.add(door);
-                unit.add(hinge);
-            }
-
-            // =========================
-            // PINTU KANAN
-            // =========================
+                const door = cabinetParts.doorLeft.clone(); applyMat(door, true);
+                door.position.set(0, 0, 0); const dBox = new THREE.Box3().setFromObject(door); 
+                const dW = dBox.max.x - dBox.min.x; const dH = dBox.max.y - dBox.min.y;
+                
+                // Pintu ditaruh di center wrapper
+                door.position.set(-((dBox.max.x + dBox.min.x) / 2), -((dBox.max.y + dBox.min.y) / 2), -dBox.max.z);
+                const doorWrapper = new THREE.Group(); doorWrapper.add(door);
+                
+                // Melarkan pintu dari titik tengah (center) agar rapat menutup lubang
+                doorWrapper.scale.set(targetW / dW, targetH / dH, 1);
+                
+                // Engsel tetep di posisi asli, wrapper digeser ke kanan menutupi lubang
+                const pivotX = fBox.min.x + wallThick; 
+                hinge.position.set(pivotX, 0, pivotZ); 
+                doorWrapper.position.set((targetW / 2) - 0.005, innerCenterY, 0); 
+                
+                hinge.userData = { type: 'cabinet_door', id: unitId, canOpen: true, isOpen, baseRotation: 0, openRotation: -Math.PI / 1.8 };
+                if (isOpen) hinge.rotation.y = hinge.userData.openRotation; hinge.add(doorWrapper);
+            } 
             else if (doorType === 'right') {
-
-                const hinge = new THREE.Group();
-
-                const door = cabinetParts.doorRight.clone();
-                applyMat(door, true);
-
-                // BESARKAN dikit biar overlap
-                door.scale.x = 1.12;
-
-                const dBox = new THREE.Box3().setFromObject(door);
-
-                // pivot mepet frame kanan
-                hinge.position.set(
-                    fBox.max.x + 0.005,
-                    0,
-                    pivotZ
-                );
-
-                // tarik pintu keluar sedikit
-                door.position.set(
-                    -dBox.max.x + 0.06,
-                    0,
-                    -dBox.max.z + 0.1
-                );
-
-                hinge.userData = {
-                    type: 'cabinet_door',
-                    id: unitId,
-                    canOpen: true,
-                    isOpen,
-                    baseRotation: 0,
-                    openRotation: Math.PI / 1.8
-                };
-
-                if (isOpen) {
-                    hinge.rotation.y = hinge.userData.openRotation;
-                }
-
-                hinge.add(door);
-                unit.add(hinge);
-            }
-
-            // =========================
-            // DRAWER / DORONG
-            // =========================
+                const door = cabinetParts.doorRight.clone(); applyMat(door, true);
+                door.position.set(0, 0, 0); const dBox = new THREE.Box3().setFromObject(door); 
+                const dW = dBox.max.x - dBox.min.x; const dH = dBox.max.y - dBox.min.y;
+                
+                // Pintu ditaruh di center wrapper
+                door.position.set(-((dBox.max.x + dBox.min.x) / 2), -((dBox.max.y + dBox.min.y) / 2), -dBox.max.z);
+                const doorWrapper = new THREE.Group(); doorWrapper.add(door);
+                
+                // Melarkan pintu dari titik tengah (center) agar rapat menutup lubang
+                doorWrapper.scale.set(targetW / dW, targetH / dH, 1);
+                
+                // Engsel tetep di posisi asli, wrapper digeser ke kiri menutupi lubang
+                const pivotX = fBox.max.x - wallThick; 
+                hinge.position.set(pivotX, 0, pivotZ); 
+                doorWrapper.position.set(-(targetW / 2) + 0.005, innerCenterY, 0); 
+                
+                hinge.userData = { type: 'cabinet_door', id: unitId, canOpen: true, isOpen, baseRotation: 0, openRotation: Math.PI / 1.8 }; 
+                if (isOpen) hinge.rotation.y = hinge.userData.openRotation; hinge.add(doorWrapper);
+            } 
             else if (doorType === 'drawer') {
+                const door = cabinetParts.drawer.clone(); applyMat(door, true);
+                door.position.set(0, 0, 0); const dBox = new THREE.Box3().setFromObject(door);
+                const dW = dBox.max.x - dBox.min.x; const dH = dBox.max.y - dBox.min.y;
 
-                const hinge = new THREE.Group();
-
-                const door = cabinetParts.drawer.clone();
-                applyMat(door, true);
-
-                // overlap dikit
-                door.scale.x = 1.08;
-
-                const dBox = new THREE.Box3().setFromObject(door);
-
-                const centerX = (fBox.min.x + fBox.max.x) / 2;
-
-                hinge.position.set(
-                    centerX,
-                    0,
-                    pivotZ
-                );
-
-                const doorCenterX =
-                    (dBox.min.x + dBox.max.x) / 2;
-
-                door.position.set(
-                    -doorCenterX,
-                    0,
-                    -dBox.max.z + 0.015
-                );
-
-                hinge.userData = {
-                    type: 'cabinet_drawer',
-                    id: unitId,
-                    canOpen: true,
-                    isOpen,
-                    baseZ: 0.8,
-                    openZ: 2
-                };
-
-                if (isOpen) {
-                    hinge.position.z =
-                        hinge.userData.openZ;
-                }
-
-                hinge.add(door);
-                unit.add(hinge);
+                // Laci ditaruh di center wrapper
+                door.position.set(-((dBox.max.x + dBox.min.x) / 2), -((dBox.max.y + dBox.min.y) / 2), -dBox.max.z);
+                const doorWrapper = new THREE.Group(); doorWrapper.add(door);
+                
+                // Melarkan laci dari titik tengah
+                doorWrapper.scale.set(targetW / dW, targetH / dH, 1);
+                
+                const centerX = (fBox.min.x + fBox.max.x) / 2; 
+                hinge.position.set(centerX, 0, pivotZ); 
+                doorWrapper.position.set(0, innerCenterY, 0); 
+                
+                hinge.userData = { type: 'cabinet_drawer', id: unitId, canOpen: true, isOpen, baseZ: pivotZ + 0.1, openZ: pivotZ + 2 };
+                if (isOpen) hinge.position.z = hinge.userData.openZ; hinge.add(doorWrapper);
             }
-
-            // POSISI UNIT
-            unit.position.set(
-                c * size.x,
-                r * size.y,
-                0
-            );
-
+            unit.add(hinge); 
+            
+            // FUNGSI ANTI-DOUBLE FRAME
+            unit.position.set(c * overlapX, r * overlapY, 0); 
             rackGroup.add(unit);
         }
     }
 }
-
 // ==========================================
 // --- SECTION 4: PRODUCT MODULE - LEMARI (WARDROBE) ---
 // ==========================================
@@ -308,406 +222,165 @@ async function initLemari(loader) {
 }
 
 function buildLemari(states) {
-
     if (!lemariParts.frame) return;
-
-    const unit = new THREE.Group();
-
-    // =========================
-    // FRAME
-    // =========================
-    const frame = lemariParts.frame.clone();
-    applyMat(frame, true);
-    unit.add(frame);
-
+    const unit = new THREE.Group(); 
+    const frame = lemariParts.frame.clone(); 
+    applyMat(frame, true); unit.add(frame);
+    
     const fBox = new THREE.Box3().setFromObject(frame);
-
-    const pivotZ = fBox.max.z + 0.02;
-
-    const wCenter = new THREE.Vector3();
-    fBox.getCenter(wCenter);
-
-    const intMinY = fBox.min.y + 0.1;
-    const intMaxY = fBox.max.y - 0.1;
-
+    const pivotZ = fBox.max.z;      
+    const wCenter = new THREE.Vector3(); fBox.getCenter(wCenter);
+    const intMinY = fBox.min.y + 0.1; 
+    const intMaxY = fBox.max.y - 0.1; 
     const totalH = intMaxY - intMinY;
 
-    // =========================
-    // DOOR SYSTEM
-    // =========================
+    // --- POSISI PINTU MURNI BLENDER (ANTI MENDEM & SEJAJAR) ---
     const attachDoor = (doorModel, isLeft, idStr) => {
-
-        const door = doorModel.clone();
-
-        applyMat(door, true);
-
-        // overlap sedikit
-        door.scale.x = 1.05;
-
+        const door = doorModel.clone(); applyMat(door, true);
+        
+        // RESET POSISI SEBELUM KALKULASI BOX
+        door.position.set(0, 0, 0); 
         const dBox = new THREE.Box3().setFromObject(door);
-
+        
         const hinge = new THREE.Group();
-
         if (isLeft) {
-
-            hinge.position.set(
-                fBox.min.x - 0.005,
-                0,
-                pivotZ
-            );
-
-            door.position.set(
-                -dBox.min.x - 0.02,
-                0,
-                -dBox.max.z + 0.06
-            );
-
-            hinge.userData = {
-                type: 'cabinet_door',
-                id: idStr,
-                canOpen: true,
-                isOpen: states.cabinet[idStr] || false,
-                baseRotation: 0,
-                openRotation: -Math.PI / 1.8
-            };
-
+            hinge.position.set(fBox.min.x + 0.015, 0, pivotZ); 
+            // PAKAI min.z AGAR PUNGGUNG PINTU RATA DENGAN FRAME DEPAN (DIJAMIN SEJAJAR)
+            door.position.set(-dBox.min.x, 0, -dBox.min.z); 
+            
+            hinge.userData = { type: 'cabinet_door', id: idStr, canOpen: true, isOpen: states.cabinet[idStr] || false, baseRotation: 0, openRotation: -Math.PI / 1.8 };
         } else {
-
-            hinge.position.set(
-                fBox.max.x + 0.005,
-                0,
-                pivotZ
-            );
-
-            // KHUSUS pintu kanan atas
-            let extraZ = 0.06;
-
-            if (idStr === 'lemari_kanan_atas') {
-                extraZ = 0.085;
-            }
-
-            door.position.set(
-                -dBox.max.x + 0.02,
-                0,
-                -dBox.max.z + extraZ
-            );
-
-            hinge.userData = {
-                type: 'cabinet_door',
-                id: idStr,
-                canOpen: true,
-                isOpen: states.cabinet[idStr] || false,
-                baseRotation: 0,
-                openRotation: Math.PI / 1.8
-            };
+            hinge.position.set(fBox.max.x - 0.015, 0, pivotZ); 
+            // PAKAI min.z AGAR PUNGGUNG PINTU RATA DENGAN FRAME DEPAN (DIJAMIN SEJAJAR)
+            door.position.set(-dBox.max.x, 0, -dBox.min.z); 
+            
+            hinge.userData = { type: 'cabinet_door', id: idStr, canOpen: true, isOpen: states.cabinet[idStr] || false, baseRotation: 0, openRotation: Math.PI / 1.8 };
         }
-
-        if (hinge.userData.isOpen) {
-            hinge.rotation.y =
-                hinge.userData.openRotation;
-        }
-
-        hinge.add(door);
-        unit.add(hinge);
+        if (hinge.userData.isOpen) hinge.rotation.y = hinge.userData.openRotation;
+        hinge.add(door); unit.add(hinge);
     };
 
-    attachDoor(
-        lemariParts.doorLeft,
-        true,
-        'lemari_kiri'
-    );
+    attachDoor(lemariParts.doorLeft, true, 'lemari_kiri');            
+    attachDoor(lemariParts.doorRightTop, false, 'lemari_kanan_atas');  
+    attachDoor(lemariParts.doorRightBottom, false, 'lemari_kanan_bawah'); 
 
-    attachDoor(
-        lemariParts.doorRightTop,
-        false,
-        'lemari_kanan_atas'
-    );
+    // --- POSISI X RAK & GANTUNGAN (MENTOK DINDING LEMARI) ---
+    const totalWidth = fBox.max.x - fBox.min.x;
+    const wallThick = 0.015; 
+    const compWidth = ((totalWidth - (3 * wallThick)) / 2) + 0.01; 
 
-    attachDoor(
-        lemariParts.doorRightBottom,
-        false,
-        'lemari_kanan_bawah'
-    );
+    const leftCenterX = fBox.min.x + wallThick + (compWidth / 2);
+    const rightCenterX = fBox.max.x - wallThick - (compWidth / 2);
 
-    // =========================
-    // HELPER RAK
-    // =========================
-    const addRak = (side, yPos) => {
+    lemariParts.rak.position.set(0,0,0);
+    const rBox = new THREE.Box3().setFromObject(lemariParts.rak);
+    const rWidth = rBox.max.x - rBox.min.x;
+    const scaleXRak = rWidth > 0 ? compWidth / rWidth : 1; 
 
-        const rak = lemariParts.rak.clone();
+    lemariParts.rakKananAtas.position.set(0,0,0);
+    const rTopBox = new THREE.Box3().setFromObject(lemariParts.rakKananAtas);
+    const rTopWidth = rTopBox.max.x - rTopBox.min.x;
+    const scaleXRakTop = rTopWidth > 0 ? compWidth / rTopWidth : 1;
 
-        applyMat(rak, true);
+    lemariParts.rod.position.set(0,0,0);
+    const gBox = new THREE.Box3().setFromObject(lemariParts.rod);
+    const gWidth = gBox.max.x - gBox.min.x;
+    const scaleXRod = gWidth > 0 ? compWidth / gWidth : 1;
 
-        // overlap dikit
-        rak.scale.x = 1.08;
+    const addRak = (xCenter, yPos) => {
+        const rak = lemariParts.rak.clone(); applyMat(rak, true);
+        rak.position.set(-((rBox.max.x + rBox.min.x) / 2), -rBox.min.y, -((rBox.max.z + rBox.min.z) / 2));
+        const wrapper = new THREE.Group(); 
+        wrapper.add(rak);
+        wrapper.scale.set(scaleXRak, 1, 1);
+        wrapper.position.set(xCenter, yPos, wCenter.z);
+        unit.add(wrapper);
+    };
 
-        const rb = new THREE.Box3().setFromObject(rak);
+    const addRakTop = (xCenter, yPos) => {
+        const rakTop = lemariParts.rakKananAtas.clone(); applyMat(rakTop, true);
+        rakTop.position.set(-((rTopBox.max.x + rTopBox.min.x) / 2), -rTopBox.min.y, -((rTopBox.max.z + rTopBox.min.z) / 2));
+        const wrapper = new THREE.Group(); 
+        wrapper.add(rakTop);
+        wrapper.scale.set(scaleXRakTop, 1, 1);
+        wrapper.position.set(xCenter, yPos, wCenter.z);
+        unit.add(wrapper);
+    };
 
-        const rakWidthScaled =
-            rb.max.x - rb.min.x;
+    const addRod = (xCenter, yPos) => {
+        const rod = lemariParts.rod.clone(); applyMat(rod, true);
+        rod.position.set(-((gBox.max.x + gBox.min.x) / 2), -gBox.max.y, -((gBox.max.z + gBox.min.z) / 2));
+        const wrapper = new THREE.Group(); 
+        wrapper.add(rod);
+        wrapper.scale.set(scaleXRod, 1, 1);
+        wrapper.position.set(xCenter, yPos, wCenter.z);
+        unit.add(wrapper);
+    };
 
-        let targetX;
-
-        if (side === 'left') {
-
-            targetX =
-                fBox.min.x +
-                (rakWidthScaled / 2) +
-                0.055;
-
-        } else {
-
-            targetX =
-                fBox.max.x -
-                (rakWidthScaled / 2) -
-                0.055;
+    const distributeRacks = (xCenter, startY, endY, count) => {
+        if (count <= 0) return;
+        const spacing = (endY - startY) / (count + 1);
+        for(let i=1; i<=count; i++) {
+            addRak(xCenter, startY + (spacing * i));
         }
-
-        rak.position.set(
-            targetX - ((rb.min.x + rb.max.x) / 2),
-            yPos - rb.min.y,
-            wCenter.z - ((rb.min.z + rb.max.z) / 2)
-        );
-
-        unit.add(rak);
     };
 
-    // =========================
-    // RAK ATAS KANAN
-    // =========================
-    const addRakTop = (yPos) => {
-
-        const rakTop =
-            lemariParts.rakKananAtas.clone();
-
-        applyMat(rakTop, true);
-
-        rakTop.scale.x = 1.08;
-
-        const rb =
-            new THREE.Box3().setFromObject(rakTop);
-
-        const rakWidthScaled =
-            rb.max.x - rb.min.x;
-
-        const targetX =
-            fBox.max.x -
-            (rakWidthScaled / 2) -
-            0.055;
-
-        rakTop.position.set(
-            targetX - ((rb.min.x + rb.max.x) / 2),
-            yPos - rb.min.y,
-            wCenter.z - ((rb.min.z + rb.max.z) / 2)
-        );
-
-        unit.add(rakTop);
-    };
-
-    // =========================
-    // GANTUNGAN
-    // =========================
-    const addRod = (side, yPos) => {
-
-        const rod = lemariParts.rod.clone();
-
-        applyMat(rod, true);
-
-        // bikin gantungan lebih pas
-        rod.scale.x = 1.05;
-
-        const gBox =
-            new THREE.Box3().setFromObject(rod);
-
-        const rodWidth =
-            gBox.max.x - gBox.min.x;
-
-        let targetX;
-
-        if (side === 'left') {
-
-            // tempel ke sekat tengah
-            targetX =
-                fBox.min.x +
-                (rodWidth / 2) +
-                0.085;
-
-        } else {
-
-            targetX =
-                fBox.max.x -
-                (rodWidth / 2) -
-                0.085;
-        }
-
-        rod.position.set(
-            targetX - ((gBox.min.x + gBox.max.x) / 2),
-            yPos - gBox.max.y,
-            wCenter.z - ((gBox.min.z + gBox.max.z) / 2)
-        );
-
-        unit.add(rod);
-    };
-
-    // =========================
-    // LOGIC KIRI
-    // =========================
+    // --- RUANG KIRI (LOGIKA ANTI NUMPUK FIX) ---
     const pos = lemariConfig.rodPosition;
-
-    let actualRak =
-        Math.min(lemariConfig.leftRak, 4);
+    let actualRak = Math.min(lemariConfig.leftRak, pos === 'tidak_ada' ? 4 : 3);
 
     if (pos === 'tidak_ada') {
-
-        const spacing =
-            totalH / (actualRak + 1);
-
-        for (let i = 1; i <= actualRak; i++) {
-
-            addRak(
-                'left',
-                intMinY + (spacing * i)
-            );
-        }
-    }
-
+        distributeRacks(leftCenterX, intMinY, intMaxY, actualRak);
+    } 
     else if (pos === 'atas') {
-
-        const rodY =
-            intMaxY - (totalH * 0.05);
-
-        addRod('left', rodY);
-
-        const areaBawah =
-            totalH * 0.45;
-
-        const spacing =
-            areaBawah / (actualRak + 1);
-
-        for (let i = 1; i <= actualRak; i++) {
-
-            addRak(
-                'left',
-                intMinY + (spacing * i)
-            );
-        }
+        const rodY = intMaxY - 0.08;
+        addRod(leftCenterX, rodY); 
+        const batasAtasRak = intMinY + (totalH * 0.45);
+        distributeRacks(leftCenterX, intMinY, batasAtasRak, actualRak);
     }
-
     else if (pos === 'tengah') {
-
-        const rodY =
-            intMinY + (totalH * 0.45);
-
-        addRod('left', rodY);
-
+        const rodY = intMinY + (totalH * 0.45);
+        addRod(leftCenterX, rodY); 
         if (actualRak > 0) {
-
-            const startAtas =
-                rodY + (totalH * 0.1);
-
-            const areaAtas =
-                intMaxY - startAtas;
-
-            const spacing =
-                areaAtas / (actualRak + 1);
-
-            for (let i = 1; i <= actualRak; i++) {
-
-                addRak(
-                    'left',
-                    startAtas + (spacing * i)
-                );
-            }
+            const startAtas = rodY + 0.15; 
+            distributeRacks(leftCenterX, startAtas, intMaxY, actualRak);
         }
     }
-
     else if (pos === 'atas_tengah') {
-
-        const rodY =
-            intMinY + (totalH * 0.65);
-
-        addRod('left', rodY);
-
-        let rakBawah =
-            Math.min(1, actualRak);
-
-        let rakAtas =
-            Math.max(0, actualRak - 1);
-
+        const rodY = intMinY + (totalH * 0.65); 
+        addRod(leftCenterX, rodY);
+        let rakBawah = Math.min(1, actualRak);
+        let rakAtas = Math.max(0, actualRak - 1); 
         if (rakBawah > 0) {
-
-            addRak(
-                'left',
-                intMinY + (totalH * 0.15)
-            );
+            addRak(leftCenterX, intMinY + (totalH * 0.15));
         }
-
         if (rakAtas > 0) {
-
-            const startAtas =
-                rodY + (totalH * 0.1);
-
-            const areaAtas =
-                intMaxY - startAtas;
-
-            const spacing =
-                areaAtas / (rakAtas + 1);
-
-            for (let i = 1; i <= rakAtas; i++) {
-
-                addRak(
-                    'left',
-                    startAtas + (spacing * i)
-                );
-            }
+            const startAtas = rodY + 0.15; 
+            distributeRacks(leftCenterX, startAtas, intMaxY, rakAtas);
         }
     }
 
-    // =========================
-    // KANAN
-    // =========================
-    lemariParts.doorRightBottom.position.set(
-        0,
-        0,
-        0
-    );
-
-    const drbBox =
-        new THREE.Box3().setFromObject(
-            lemariParts.doorRightBottom
-        );
-
-    const splitY =
-        drbBox.max.y + 0.02;
-
-    // rak kanan atas
+    // --- RUANG KANAN ---
+    lemariParts.doorRightBottom.position.set(0,0,0);
+    const drbBox = new THREE.Box3().setFromObject(lemariParts.doorRightBottom);
+    const splitY = drbBox.max.y + 0.02;
+    
     if (lemariConfig.rightRakTop >= 1) {
-
-        addRakTop(
-            splitY +
-            ((intMaxY - splitY) / 2)
-        );
+        const spacing = (intMaxY - splitY) / (lemariConfig.rightRakTop + 1);
+        for(let i=1; i<=lemariConfig.rightRakTop; i++) {
+            addRakTop(rightCenterX, splitY + (spacing * i));
+        }
     }
-
-    // rak kanan bawah
-    const rSpacing =
-        (splitY - intMinY) /
-        (lemariConfig.rightRakBottom + 1);
-
-    for (
-        let i = 1;
-        i <= lemariConfig.rightRakBottom;
-        i++
-    ) {
-
-        addRak(
-            'right',
-            intMinY + (rSpacing * i)
-        );
+    if (lemariConfig.rightRakBottom >= 1) {
+        const spacing = (splitY - intMinY) / (lemariConfig.rightRakBottom + 1);
+        for(let i=1; i<=lemariConfig.rightRakBottom; i++) {
+            addRak(rightCenterX, intMinY + (spacing * i));
+        }
     }
 
     rackGroup.add(unit);
 }
+
 // ==========================================
 // --- SECTION 5: PRODUCT MODULE - STANDARD RACK ---
 // ==========================================
@@ -737,7 +410,6 @@ window.updateDoorType = (colIndex, val) => { cabinetDoorTypes[colIndex] = val; u
 window.updateLemariConfig = (key, val) => { 
     if (key === 'rodPosition') {
         lemariConfig.rodPosition = val;
-        // Dinamis update max value (4 or 3)
         const maxRak = val === 'tidak_ada' ? 4 : 3;
         if (lemariConfig.leftRak > maxRak) lemariConfig.leftRak = maxRak;
         if (document.getElementById('input_leftRak')) {
@@ -847,7 +519,7 @@ function setupScene() {
 
 function setupLights() {
     scene.add(new THREE.AmbientLight(0xffffff, 0.8)); scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.6)); 
-    const spotlight = new THREE.DirectionalLight(0xffffff, 1.2); spotlight.position.set(5, 10, 10); spotlight.castShadow = true; spotlight.shadow.mapSize.set(2048, 2048); scene.add(spotlight);
+    const spotlight = new THREE.DirectionalLight(0xffffff, 1.2); spotlight.position.set(5, 10, 7); spotlight.castShadow = true; spotlight.shadow.mapSize.set(2048, 2048); scene.add(spotlight);
 }
 
 function setupEnvironment() {
