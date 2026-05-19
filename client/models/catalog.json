@@ -15,14 +15,21 @@
   },
   {
     "id": "lemari",
-    "name": "Lemari Kayu",
+    "name": "Lemari 2 Pintu Kaca Masuk",
     "file": "./models/lemari.glb",
     "thumbnail": "./models/lemari2pintukacamasuk.png",
     "type": "cabinet"
   },
   {
+    "id": "lemari2pintubiasa",
+    "name": "Lemari 2 Pintu",
+    "file": "./models/framelemari2pintubiasa.glb",
+    "thumbnail": "./models/lemari2pintubiasa-thumb.webp",
+    "type": "cabinet"
+  },
+  {
     "id": "rak",
-    "name": "Rak Modular",
+    "name": "Rak Buku Serbaguna",
     "file": "./models/rak.glb",
     "thumbnail": "./models/rak-buku.jpg",
     "type": "rack"

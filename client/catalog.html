@@ -1,251 +1,176 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Furnitur</title>
+    <title>Debbi Meubeul — Katalog</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Noto Serif Display"', 'Georgia', 'serif'],
+                        sans:  ['"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: { 50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18' },
+                        rust: '#c8602a',
+                    },
+                    keyframes: {
+                        fadeUp:  { '0%':{ opacity:'0', transform:'translateY(12px)' }, '100%':{ opacity:'1', transform:'translateY(0)' } },
+                        shimmer: { '0%':{ backgroundPosition:'-600px 0' }, '100%':{ backgroundPosition:'600px 0' } },
+                    },
+                    animation: {
+                        fadeUp:  'fadeUp 0.45s ease both',
+                        shimmer: 'shimmer 1.4s linear infinite',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; }
+        .skeleton { background: linear-gradient(90deg,#efefed 25%,#f8f7f5 50%,#efefed 75%); background-size:600px 100%; animation:shimmer 1.4s linear infinite; }
+        @keyframes shimmer { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
+        .catalog-card { animation: fadeUp 0.45s ease both; }
+        @keyframes fadeUp { 0%{opacity:0;transform:translateY(12px)} 100%{opacity:1;transform:translateY(0)} }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-orange-500 to-orange-600 shadow-md sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <h1 class="text-2xl font-bold text-white">Debbi Meubeul</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative hidden md:block">
-                        <input type="text" placeholder="Cari produk..." class="w-96 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300">
-                        <button class="absolute right-2 top-2 text-orange-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <button class="text-white hover:text-orange-100 transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
+<body class="bg-white font-sans text-stone-900">
+
+    <header class="sticky top-0 z-50 bg-white border-b border-stone-200">
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 h-16 flex items-center justify-between">
+            <a href="#" class="font-serif text-2xl font-light tracking-wide text-stone-900">
+                Debbi <span class="text-rust">Meubeul</span>
+            </a>
+            <div class="flex items-center gap-1">
+                <div class="hidden md:flex items-center border border-stone-200 bg-stone-50 focus-within:border-stone-900 focus-within:bg-white transition-colors">
+                    <input type="text" placeholder="Cari produk..." class="bg-transparent px-4 py-2 text-sm placeholder-stone-400 outline-none w-56 font-sans text-stone-900">
+                    <button class="px-3 py-2 text-stone-400 hover:text-stone-900 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </button>
                 </div>
+                <button class="p-2.5 text-stone-400 hover:text-stone-900 hover:bg-stone-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Breadcrumb -->
-    <div class="container mx-auto px-4 py-3">
-        <div class="flex items-center space-x-2 text-sm text-gray-600">
-            <a href="#" class="hover:text-orange-600">Home</a>
-            <span>/</span>
-            <span class="text-orange-600">Katalog Rak</span>
-        </div>
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12 pt-12 pb-8">
+        <p class="text-xs tracking-[0.14em] uppercase text-stone-400 mb-3">Koleksi Produk</p>
+        <h1 class="font-serif font-light text-4xl md:text-5xl text-stone-900">
+            Pilih model, <em class="italic text-rust">sesuaikan</em> sesukamu.
+        </h1>
     </div>
 
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 py-6">
-        <!-- Category Banner -->
-        <div class="bg-gradient-to-r from-orange-100 to-orange-50 rounded-lg p-6 mb-6 shadow-sm">
-            <h2 class="text-3xl font-bold text-gray-800 mb-2">Katalog Rak</h2>
-            <p class="text-gray-600">Pilih model untuk mulai menyesuaikan furnitur impian Anda</p>
-        </div>
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12"><hr class="border-stone-200"></div>
 
-        <!-- Filter Section -->
-        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div class="flex items-center justify-between flex-wrap gap-4">
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-600 font-medium">Filter:</span>
-                    <button class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition">
-                        Semua
-                    </button>
-                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
-                        Rak Buku
-                    </button>
-                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
-                        Rak Display
-                    </button>
-                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
-                        Rak TV
-                    </button>
-                </div>
-                <select class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <option>Urutkan: Terpopuler</option>
-                    <option>Harga: Rendah ke Tinggi</option>
-                    <option>Harga: Tinggi ke Rendah</option>
-                    <option>Terbaru</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Product Grid -->
-        <div id="catalogList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            <!-- Products will be loaded here from catalog.json -->
-        </div>
-
-        <!-- Pagination -->
-        <div class="flex items-center justify-center mt-8 space-x-2">
-            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </button>
-            <button class="px-4 py-2 bg-orange-500 text-white rounded-lg shadow-sm font-medium">1</button>
-            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">2</button>
-            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">3</button>
-            <span class="px-2 text-gray-400">...</span>
-            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">10</button>
-            <button class="px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition text-gray-600 hover:text-orange-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </button>
-        </div>
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-10 pb-24">
+        <div id="catalogList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 bg-white"></div>
     </div>
+
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12 pb-16 flex items-center justify-center gap-1">
+        <button class="w-9 h-9 flex items-center justify-center border border-stone-200 text-stone-400 hover:border-stone-900 hover:text-stone-900 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="w-9 h-9 flex items-center justify-center border border-stone-900 bg-stone-900 text-white text-xs">1</button>
+        <button class="w-9 h-9 flex items-center justify-center border border-stone-200 text-stone-500 hover:border-stone-900 hover:text-stone-900 transition-colors text-xs">2</button>
+        <span class="px-1 text-stone-300 text-sm">···</span>
+        <button class="w-9 h-9 flex items-center justify-center border border-stone-200 text-stone-400 hover:border-stone-900 hover:text-stone-900 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12"><hr class="border-stone-200"></div>
+    <footer class="max-w-[1400px] mx-auto px-8 md:px-12 py-6 flex flex-col md:flex-row items-center justify-between gap-2">
+        <span class="text-xs text-stone-400">© 2026 Debbi Meubeul</span>
+        <span class="text-xs text-stone-400">Garut, Jawa Barat</span>
+    </footer>
 
     <script>
-        // Load catalog data from catalog.json
-        async function loadCatalog() {
-            try {
-                const response = await fetch('./models/catalog.json');
-                const data = await response.json();
-                const catalogList = document.getElementById('catalogList');
-                
-                if (data && data.length > 0) {
-                    catalogList.innerHTML = '';
-                    data.forEach((item, index) => {
-                        const card = createProductCard(item, index);
-                        catalogList.innerHTML += card;
-                    });
-                } else {
-                    catalogList.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">Tidak ada produk tersedia</div>';
-                }
-            } catch (error) {
-                console.error('Error loading catalog:', error);
-                document.getElementById('catalogList').innerHTML = 
-                    '<div class="col-span-full text-center py-12 text-red-500">Gagal memuat katalog. Pastikan file catalog.json ada.</div>';
-            }
+        // Konfigurasi URL Base API Backend mu
+        const API_BASE_URL = 'http://localhost:3001/api';
+
+        const BADGE_CYCLE  = [null, null, 'new', 'premium', null];
+        const BADGE_LABELS = { new: 'Baru', premium: 'Premium' };
+
+        function formatIDR(n) {
+            return new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', minimumFractionDigits:0 }).format(n);
         }
 
-        // Create product card HTML
-        function createProductCard(item, index) {
-            const badges = ['', '', 'New', 'Premium', ''];
-            const badgeColors = ['bg-orange-500', 'bg-red-500', 'bg-green-500', 'bg-purple-500', ''];
-            const badgeIndex = index % badges.length;
-            const badge = badges[badgeIndex];
-            const badgeColor = badgeColors[badgeIndex];
-            
-            const rating = (4.5 + Math.random() * 0.5).toFixed(1);
-            const sold = Math.floor(Math.random() * 200) + 30;
-            
-            // Generate random price based on type
-            let basePrice = 1000000;
-            if (item.type === 'cabinet') {
-                basePrice = 2500000 + Math.floor(Math.random() * 1500000);
-            } else if (item.type === 'rack') {
-                basePrice = 1200000 + Math.floor(Math.random() * 800000);
-            }
-            
-            const formattedPrice = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(basePrice);
-            
-            // Get type label
-            const typeLabels = {
-                'cabinet': 'Lemari',
-                'rack': 'Rak',
-                'shelf': 'Rak'
-            };
-            const typeLabel = typeLabels[item.type] || 'Furnitur';
+        // Tampilan loading ambalan skeleton
+        function skeletonCard() {
+            return `<div class="bg-white border border-stone-200">
+                <div class="aspect-square w-full skeleton"></div>
+                <div class="p-4 space-y-2">
+                    <div class="skeleton h-3 w-4/5"></div>
+                    <div class="skeleton h-3 w-2/5 mt-1"></div>
+                </div>
+            </div>`;
+        }
+
+        // Generate Card HTML Berdasarkan Data Murni dari Database
+        function createCard(item, index) {
+            const badgeKey = BADGE_CYCLE[index % BADGE_CYCLE.length];
+            const delay = (index % 10) * 40;
+
+            const badgeHTML = badgeKey
+                ? `<div class="absolute top-2.5 left-2.5 text-[0.6rem] tracking-widest uppercase px-2 py-0.5 text-white font-medium"
+                        style="background:${badgeKey === 'new' ? '#c8602a' : '#1a1a18'}">${BADGE_LABELS[badgeKey]}</div>`
+                : '';
+
+            // MODIFIKASI DISINI: Jika field thumbnail ada isinya di DB, panggil URL backend port 3001
+            const imgHTML = item.thumbnail
+                ? `<img src="http://localhost:3001/uploads/${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">`
+                : `<svg class="w-14 h-14 text-stone-300 transition-transform duration-500 group-hover:scale-105" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 64 64">
+                       <path d="M32 8L8 20v24l24 12 24-12V20L32 8z"/><path d="M32 8v36M8 20l24 12 24-12"/>
+                   </svg>`;
 
             return `
-                <div class="bg-white rounded-lg shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer" onclick="window.location.href='custom.html?id=${item.id}'">
-                    <div class="relative overflow-hidden bg-gray-100 aspect-square">
-                        ${badge ? `<div class="absolute top-2 left-2 ${badgeColor} text-white text-xs px-2 py-1 rounded-full font-semibold z-10">${badge}</div>` : ''}
-                        ${item.thumbnail ? 
-                            `<img src="${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">` :
-                            `<div class="w-full h-full flex items-center justify-center p-4 group-hover:scale-110 transition-transform duration-300">
-                                <svg class="w-32 h-32 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                                </svg>
-                            </div>`
-                        }
-                        <div class="absolute bottom-2 right-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs font-medium text-gray-700">
-                            ${typeLabel}
-                        </div>
-                    </div>
-                    <div class="p-3">
-                        <h3 class="text-sm font-medium text-gray-800 mb-2 line-clamp-2 hover:text-orange-600">${item.name}</h3>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-orange-600 font-bold text-lg">${formattedPrice}</span>
-                        </div>
-                        <div class="flex items-center text-xs text-gray-500 mb-2">
-                            <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                            </svg>
-                            <span class="ml-1">${rating} | Terjual ${sold}+</span>
-                        </div>
-                        <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg text-sm font-medium transition">
-                            Customize Sekarang
-                        </button>
-                    </div>
+            <div class="catalog-card bg-white group cursor-pointer hover:bg-stone-50 transition-colors border border-stone-200"
+                 style="animation-delay:${delay}ms"
+                 onclick="window.location.href='detail.html?slug=${item.slug}'">
+                <div class="relative aspect-square bg-white overflow-hidden flex items-center justify-center">
+                    ${badgeHTML}
+                    ${imgHTML}
                 </div>
-            `;
+                <div class="p-4 border-t border-stone-200">
+                    <p class="text-sm text-stone-800 leading-snug mb-1.5 line-clamp-2">${item.name}</p>
+                    <p class="font-serif font-light text-lg text-stone-900">${formatIDR(item.basePrice)}</p>
+                </div>
+            </div>`;
         }
 
-        // Load catalog when page loads
+        // Fungsi Ambil Data dari Route Backend GET /api/products
+        async function loadCatalog() {
+            const grid = document.getElementById('catalogList');
+            
+            // Pasang loading skeleton dulu biar rapi pas nunggu response API
+            grid.innerHTML = Array(10).fill(0).map(skeletonCard).join('');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/products`);
+                if (!res.ok) throw new Error('Gagal fetch data dari server API');
+                
+                const products = await res.json();
+
+                if (products && products.length > 0) {
+                    grid.innerHTML = products.map((item, i) => createCard(item, i)).join('');
+                } else {
+                    grid.innerHTML = `<div class="col-span-full py-20 text-center text-sm text-stone-400">Tidak ada produk aktif di database.</div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-sm text-red-500 font-medium">Gagal memuat katalog dari database. Pastikan server backend Anda menyala.</div>`;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', loadCatalog);
     </script>
-
-    <!-- Footer -->
-    <footer class="bg-white mt-12 border-t">
-        <div class="container mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="font-bold text-gray-800 mb-4">Layanan Pelanggan</h3>
-                    <ul class="space-y-2 text-sm text-gray-600">
-                        <li><a href="#" class="hover:text-orange-600">Pusat Bantuan</a></li>
-                        <li><a href="#" class="hover:text-orange-600">Cara Pembelian</a></li>
-                        <li><a href="#" class="hover:text-orange-600">Pengiriman</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-800 mb-4">Tentang Kami</h3>
-                    <ul class="space-y-2 text-sm text-gray-600">
-                        <li><a href="#" class="hover:text-orange-600">Tentang FurniShop</a></li>
-                        <li><a href="#" class="hover:text-orange-600">Karir</a></li>
-                        <li><a href="#" class="hover:text-orange-600">Kebijakan Privasi</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-800 mb-4">Pembayaran</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <div class="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">BCA</div>
-                        <div class="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">BNI</div>
-                        <div class="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">OVO</div>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-800 mb-4">Ikuti Kami</h3>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-600 hover:text-orange-600">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-600 hover:text-orange-600">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t mt-8 pt-8 text-center text-sm text-gray-600">
-                <p>&copy; 2024 FurniShop. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
 </body>
 </html>

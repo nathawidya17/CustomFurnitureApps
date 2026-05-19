@@ -17,12 +17,22 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/products/:slug
+// Ganti bagian GET /api/products/:slug menjadi ini:
 router.get('/:slug', async (req, res) => {
   try {
-    const product = await prisma.product.findUnique({ where: { slug: req.params.slug } });
+    // 1. Decode URL (mengubah %20 jadi spasi)
+    const slugDecoded = decodeURIComponent(req.params.slug);
+    
+    // 2. Gunakan findFirst agar lebih fleksibel dibanding findUnique jika ada spasi
+    const product = await prisma.product.findFirst({ 
+        where: { slug: slugDecoded } 
+    });
+    
     if (!product) return res.status(404).json({ error: 'Produk tidak ditemukan' });
     res.json(product);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { 
+    console.error("Error Detail:", e); // Cek terminal lu, pasti pesannya lebih jelas
+    res.status(500).json({ error: e.message }); 
+  }
 });
-
 module.exports = router;

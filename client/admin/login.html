@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Furniture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-md">
+        <!-- Logo / Header -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-[#e67e22] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">Admin Panel</h1>
+            <p class="text-gray-500 text-sm mt-1">Masuk untuk mengelola pesanan</p>
+        </div>
+
+        <!-- Form -->
+        <div id="errorMsg" class="hidden bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-4"></div>
+
+        <div class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Email</label>
+                <input type="email" id="email" placeholder="admin@furniture.com"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Password</label>
+                <div class="relative">
+                    <input type="password" id="password" placeholder="••••••••"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none text-sm pr-12">
+                    <button onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button onclick="handleLogin()" id="btnLogin"
+                class="w-full bg-[#e67e22] hover:bg-[#d35400] text-white font-semibold py-3 rounded-xl transition-all text-sm">
+                Masuk
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3001/api';
+
+        // Redirect jika sudah login sebagai admin
+        const token = localStorage.getItem('adminToken');
+        if (token) window.location.href = './admin.html';
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Login dengan Enter
+        document.getElementById('password').addEventListener('keydown', e => {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        async function handleLogin() {
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const btnLogin = document.getElementById('btnLogin');
+
+            if (!email || !password) {
+                errorMsg.textContent = 'Email dan password wajib diisi';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Memproses...';
+            errorMsg.classList.add('hidden');
+
+            try {
+                const res  = await fetch(`${API}/auth/login`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorMsg.textContent = data.error || 'Login gagal';
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+
+                // Cek apakah role admin
+                if (data.user.role !== 'ADMIN') {
+                    errorMsg.textContent = 'Akses ditolak. Hanya admin yang bisa masuk.';
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+
+                // Simpan token & redirect
+                localStorage.setItem('adminToken', data.token);
+                localStorage.setItem('adminUser',  JSON.stringify(data.user));
+                window.location.href = './admin.html';
+
+            } catch (e) {
+                errorMsg.textContent = 'Tidak dapat terhubung ke server';
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btnLogin.disabled    = false;
+                btnLogin.textContent = 'Masuk';
+            }
+        }
+    </script>
+</body>
+</html>

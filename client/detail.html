@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debbi Meubeul — Detail Produk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Noto Serif Display"', 'Georgia', 'serif'],
+                        sans:  ['"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: { 50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18' },
+                        rust: '#c8602a',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; }
+        .thumb-btn.active { border-color: #1a1a18 !important; }
+    </style>
+</head>
+<body class="bg-white font-sans text-stone-900">
+
+    <header class="sticky top-0 z-50 bg-white border-b border-stone-200">
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 h-16 flex items-center justify-between">
+            <a href="catalog.html" class="font-serif text-2xl font-light tracking-wide text-stone-900">
+                Debbi <span class="text-rust">Meubeul</span>
+            </a>
+            <div class="flex items-center gap-1">
+                <button class="p-2.5 text-stone-400 hover:text-stone-900 hover:bg-stone-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-4">
+        <div class="flex items-center gap-2 text-xs text-stone-400">
+            <a href="catalog.html" class="hover:text-stone-900 transition-colors">Katalog</a>
+            <span>/</span>
+            <span id="breadcrumbName" class="text-stone-600">Detail Produk</span>
+        </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12 pb-24">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20">
+
+            <div class="flex gap-4">
+                <div id="thumbnailList" class="hidden md:flex flex-col gap-2 w-16 flex-shrink-0"></div>
+
+                <div class="flex-1 aspect-square bg-stone-50 flex items-center justify-center relative overflow-hidden">
+                    <div id="mainImage" class="w-full h-full flex items-center justify-center">
+                        <svg class="w-32 h-32 text-stone-200" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 64 64">
+                            <path d="M32 8L8 20v24l24 12 24-12V20L32 8z"/><path d="M32 8v36M8 20l24 12 24-12"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col justify-between">
+                
+                <div class="space-y-6">
+                    <div class="pb-6 border-b border-stone-200">
+                        <p id="productType" class="text-xs tracking-[0.12em] uppercase text-stone-400 mb-2">Kategori</p>
+                        <h1 id="productName" class="font-serif font-light text-3xl md:text-4xl leading-tight mb-4">Nama Produk</h1>
+                        <p class="text-xs text-stone-500 mb-1">Estimasi Harga Mulai Dari</p>
+                        <p id="productPrice" class="text-2xl font-light text-stone-900">Rp —</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-[0.7rem] font-bold text-stone-900 tracking-widest uppercase mb-2">Deskripsi Produk</h3>
+                        <p id="productDescription" class="text-sm text-stone-600 leading-relaxed">
+                            Memuat deskripsi produk...
+                        </p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h3 class="text-[0.7rem] font-bold text-stone-900 tracking-widest uppercase">Spesifikasi Material</h3>
+                        <ul class="text-sm text-stone-600 space-y-2">
+                            <li class="grid grid-cols-3 border-b border-stone-100 pb-2">
+                                <span class="text-stone-400">Ukuran Standar</span>
+                                <span id="productDimensions" class="col-span-2 text-stone-800 font-medium">—</span>
+                            </li>
+                            <li class="grid grid-cols-3 border-b border-stone-100 pb-2">
+                                <span class="text-stone-400">Bahan Dasar</span>
+                                <span class="col-span-2 text-stone-800">Particle Board Berkualitas Tinggi</span>
+                            </li>
+                            <li class="grid grid-cols-3 border-b border-stone-100 pb-2">
+                                <span class="text-stone-400">Jenis Pelapis</span>
+                                <span class="col-span-2 text-stone-800">PVC Sheet / HPL (High Pressure Laminate)</span>
+                            </li>
+                            <li class="grid grid-cols-3 pb-2">
+                                <span class="text-stone-400">Pilihan Tampilan</span>
+                                <span class="col-span-2 text-stone-800">Finishing Kayu (Motif Serat Kayu) & Warna Solid</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-[0.7rem] font-bold text-stone-900 tracking-widest uppercase mb-3">Ketentuan Kustomisasi</h3>
+                        <div class="bg-stone-50 p-5 rounded border border-stone-100">
+                            <ul class="text-sm text-stone-600 space-y-3">
+                                <li class="flex gap-3">
+                                    <svg class="w-5 h-5 text-stone-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                                    <span><strong>Rak & Ambalan:</strong> Jumlah sekat ambalan rak bagian dalam dapat ditambah atau dikurangi sesuai keinginan Anda.</span>
+                                </li>
+                                <li class="flex gap-3">
+                                    <svg class="w-5 h-5 text-stone-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                    <span><strong>Posisi Komponen:</strong> Susunan laci, pintu kabinet, dan posisi tiang gantungan baju dapat diubah letaknya dalam simulator 3D.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-stone-200 pt-6 mt-6 lg:mt-0">
+                    <button id="btnCustomize" class="w-full py-4 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-[0.15em] uppercase transition-colors font-medium flex items-center justify-center gap-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+                        Kustomisasi 3D Sekarang
+                    </button>
+                    <p class="text-xs text-stone-400 mt-4 leading-relaxed text-center">
+                        Masuk ke simulator untuk melihat bentuk dan merubah desain produk.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12"><hr class="border-stone-200"></div>
+    <footer class="max-w-[1400px] mx-auto px-8 md:px-12 py-6 flex flex-col md:flex-row items-center justify-between gap-2">
+        <span class="text-xs text-stone-400">© 2026 Debbi Meubeul</span>
+        <span class="text-xs text-stone-400">Garut, Jawa Barat</span>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001/api';
+        const TYPE_LABELS = { cabinet:'Lemari Kabinet', rack:'Rak Standar', lemari:'Lemari Pakaian', hiro:'Hiro Drawer' };
+
+        function formatIDR(n) {
+            return new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', minimumFractionDigits:0 }).format(n);
+        }
+
+        // Fungsi mengganti gambar utama ketika thumbnail di-klik
+        window.changeMainImage = function(url, btnElement) {
+            document.getElementById('mainImage').innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
+            document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+        };
+
+        // Load data produk dinamis berdasarkan SLUG dari database
+        async function loadProduct() {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('slug'); 
+
+            if (!slug) {
+                alert('Parameter produk tidak valid!');
+                window.location.href = 'catalog.html';
+                return;
+            }
+
+            try {
+                // Tembak API GET /api/products/:slug
+                const res = await fetch(`${API_BASE_URL}/products/${slug}`);
+                if (!res.ok) throw new Error('Produk tidak ditemukan di database.');
+                
+                const item = await res.json();
+
+                // Bind data teks dasar dari DB
+                document.getElementById('productName').textContent       = item.name;
+                document.getElementById('productType').textContent       = TYPE_LABELS[item.type] || 'Furnitur';
+                document.getElementById('breadcrumbName').textContent    = item.name;
+                document.getElementById('productPrice').textContent      = formatIDR(item.basePrice);
+                document.getElementById('productDescription').textContent= item.description || 'Tidak ada deskripsi untuk produk ini.';
+                
+                // --- PERUBAHAN DI SINI: Ngambil dari item.size atau item.dimensions ---
+                document.getElementById('productDimensions').textContent = item.size || item.dimensions || 'Custom Sesuai Kustomisasi 3D';
+                
+                document.title = `${item.name} — Debbi Meubeul`;
+
+                // --- PROSES RENDER GAMBAR UTAMA ---
+                const mainImageContainer = document.getElementById('mainImage');
+                if (item.thumbnail) {
+                    mainImageContainer.innerHTML = `<img src="http://localhost:3001/uploads/${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover">`;
+                } else {
+                    mainImageContainer.innerHTML = `
+                        <svg class="w-32 h-32 text-stone-200" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 64 64">
+                            <path d="M32 8L8 20v24l24 12 24-12V20L32 8z"/><path d="M32 8v36M8 20l24 12 24-12"/>
+                        </svg>`;
+                }
+
+                // --- PROSES RENDER DINAMIS MENU THUMBNAILS ---
+                const thumbContainer = document.getElementById('thumbnailList');
+                thumbContainer.innerHTML = ''; // bersihkan data lama
+
+                let imageList = [];
+                // Ambil data string dari DB, lalu pecah dengan tanda koma
+                if (item.images) {
+                    // split(',') memecah string jadi array, map(img => img.trim()) menghapus spasi di awal/akhir nama file
+                    imageList = item.images.split(',').map(img => img.trim());
+                }
+
+                // Kalau ternyata datanya masih kosong, isi dengan foto default agar tidak error
+                if (imageList.length === 0 && item.thumbnail) {
+                    imageList = [item.thumbnail];
+                }
+
+                if (imageList.length > 0) {
+                    imageList.forEach((fileName, index) => {
+                        // Ganti URL sesuai path folder uploads di server lu
+                        const imgUrl = `http://localhost:3001/uploads/${fileName}`;
+                        
+                        // Kasih class 'active' hanya ke foto pertama
+                        const isActiveClass = index === 0 ? 'active' : '';
+
+                        thumbContainer.innerHTML += `
+                            <button class="thumb-btn ${isActiveClass} w-16 h-16 border-2 border-transparent overflow-hidden flex items-center justify-center bg-stone-50 hover:border-stone-400 transition-colors" 
+                                    onclick="changeMainImage('${imgUrl}', this)">
+                                <img src="${imgUrl}" class="w-full h-full object-cover">
+                            </button>
+                        `;
+                    });
+                    thumbContainer.classList.remove('hidden');
+                }
+              
+                document.getElementById('btnCustomize').addEventListener('click', () => {
+                    window.location.href = `custom.html?slug=${item.slug}`;
+                });
+
+            } catch (error) {
+                console.error(error);
+                alert('Gagal memuat detail produk dari server.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProduct);
+    </script>
+</body>
+</html>

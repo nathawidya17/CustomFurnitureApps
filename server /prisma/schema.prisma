@@ -14,8 +14,8 @@ model User {
   phone     String
   password  String
   role      Role     @default(CUSTOMER)
-  orders    Order[]
   createdAt DateTime @default(now())
+  orders    Order[]
 }
 
 model Product {
@@ -23,24 +23,24 @@ model Product {
   slug        String   @unique
   name        String
   basePrice   Int
+  size        String
   description String?  @db.Text
   modelFile   String?
   thumbnail   String?
+  images      String?  @db.LongText
   isActive    Boolean  @default(true)
-  orders      Order[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  orders      Order[]
 }
 
 model Order {
   id           Int         @id @default(autoincrement())
   orderCode    String      @unique
   userId       Int
-  user         User        @relation(fields: [userId], references: [id])
   productId    Int
-  product      Product     @relation(fields: [productId], references: [id])
   productName  String
-  config       Json
+  config       String      @db.LongText
   totalPrice   Int
   status       OrderStatus @default(PENDING)
   paymentProof String?
@@ -48,6 +48,11 @@ model Order {
   adminNotes   String?     @db.Text
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  product      Product     @relation(fields: [productId], references: [id])
+  user         User        @relation(fields: [userId], references: [id])
+
+  @@index([productId], map: "Order_productId_fkey")
+  @@index([userId], map: "Order_userId_fkey")
 }
 
 enum Role {

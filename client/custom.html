@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debbi Meubeul — Kustomisasi 3D</title>
+    
     <script type="importmap">
     {
         "imports": {
@@ -11,200 +13,274 @@
         }
     }
     </script>
-    <title>3D Rak Kustomisasi</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Noto Serif Display"', 'Georgia', 'serif'],
+                        sans:  ['"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: { 50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18' },
+                        rust: '#c8602a',
+                    },
+                }
+            }
+        }
+    </script>
+
     <style>
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
-            background: #e67e22; cursor: pointer; border: 2px solid white; margin-top: -6px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px;
-        }
-        body { overflow: hidden; }
+        body { -webkit-font-smoothing: antialiased; }
         
+        /* Slider Minimalis */
+        input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: #1a1a18; cursor: pointer; margin-top: -6px;
+            border: 2px solid #f8f7f5; box-shadow: 0 0 0 1px #1a1a18;
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; background: #e5e3df; border-radius: 2px;
+        }
+
+        /* Styling injeksi input dari custom.js */
+        #layoutGrid select, #layoutGrid input[type="number"] {
+            border: 1px solid #e5e3df !important; border-radius: 0 !important; font-family: "DM Sans", sans-serif;
+            background: #fff; color: #1a1a18; width: 100%; padding: 0.5rem 0.75rem; outline: none;
+        }
+        #layoutGrid select:focus, #layoutGrid input[type="number"]:focus {
+            border-color: #1a1a18 !important; box-shadow: none !important;
+        }
+        
+        .texture-btn.active { border-color: #1a1a18 !important; }
     </style>
 </head>
-<body class="bg-[#f3f4f6]">
-    <div id="app-container" class="flex h-screen w-screen">
-        <div id="controls" class="w-[380px] h-full bg-white shadow-2xl z-20 flex flex-col overflow-y-auto">
-            <div class="bg-[#e67e22] text-white p-8">
-                <a href="catalog.html" class="flex items-center text-white/90 hover:text-white mb-6 text-sm font-medium">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Kembali ke Katalog
-                </a>
-                <h3 class="text-3xl font-bold tracking-tight">Custom Rak</h3>
-                <p class="text-white/80 mt-2 text-base">Sesuaikan dengan kebutuhan Anda</p>
-            </div>
+<body class="bg-white font-sans text-stone-900">
 
-            <div class="p-8 space-y-10">
-                <section id="dimensionSection">
-    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">DIMENSI</h4>
-    <div class="space-y-6">
-        <div class="control-group">
-            <label class="flex justify-between items-center mb-4 text-gray-600 font-medium">
-                <span>Lebar</span>
-                <span class="text-[#e67e22] font-bold text-lg"><span id="widthValue">113</span> cm</span>
-            </label>
-            <input type="range" id="width" min="113" max="300" step="10" value="113" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-        </div>
-
-        <div class="control-group">
-            <label class="flex justify-between items-center mb-4 text-gray-600 font-medium">
-                <span>Tinggi</span>
-                <span class="text-[#e67e22] font-bold text-lg"><span id="heightValue">113</span> cm</span>
-            </label>
-            <input type="range" id="height" min="113" max="300" step="10" value="113" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-        </div>
-
-        <div class="control-group">
-            <label class="flex justify-between items-center mb-4 text-gray-600 font-medium">
-                <span>Kedalaman</span>
-                <span class="text-[#e67e22] font-bold text-lg"><span id="depthValue">30</span> cm</span>
-            </label>
-            <input type="range" id="depth" min="20" max="100" step="10" value="40" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-        </div>
-    </div>
-</section>
-
-                <hr class="border-gray-100">
-
-            <section id="rackLayoutControls">
-    <h4 id="layoutTitle" class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">KONFIGURASI LAYOUT</h4>
-    <div class="grid grid-cols-2 gap-6" id="layoutGrid">
-        </div>
-</section>
-<section class="border-t pt-6">
-    <h4 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Finishing</h4>
-    
-    <!-- Toggle PVC / HPL -->
-    <div class="flex gap-2 mb-4">
-        <button id="btnPVC" onclick="setFinishingType('pvc')" 
-            class="flex-1 py-2 rounded-lg text-sm font-semibold border-2 border-[#e67e22] bg-[#e67e22] text-white transition-all">
-            PVC
-        </button>
-        <button id="btnHPL" onclick="setFinishingType('hpl')" 
-            class="flex-1 py-2 rounded-lg text-sm font-semibold border-2 border-gray-200 bg-white text-gray-500 transition-all">
-            HPL
-        </button>
-    </div>
-
-    <!-- Opsi Tekstur PVC -->
-    <div id="pvcOptions" class="grid grid-cols-3 gap-2">
-        <button onclick="selectTexture('pvc', './models/tekstur/warna putih.jpg', this)" 
-                class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-                <img src="./models/tekstur/warna putih.jpg" class="w-full h-14 object-cover rounded-md"/>
-                <span class="text-[10px] text-gray-500 font-medium">Putih </span>   
-        </button>
-        <button onclick="selectTexture('pvc', './models/tekstur/warna abu.avif', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/warna abu.avif" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Abu</span>
-        </button>
-        <button onclick="selectTexture('pvc', './models/tekstur/summer blue.avif', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/summer blue.avif" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Summer Blue</span>
-        </button>
-         <button onclick="selectTexture('pvc', './models/tekstur/ultramarine.jpg', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/ultramarine.jpg" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Ultramarine</span>
-        </button>
-        <button onclick="selectTexture('pvc', './models/tekstur/kayu03.jpg', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/kayu03.jpg" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Motif Kayu</span>
-        </button>
-        
-    </div>
-
-    <!-- Opsi Tekstur HPL -->
-    <div id="hplOptions" class="grid grid-cols-3 gap-2 hidden">
-        <button onclick="selectTexture('hpl', './models/tekstur/oak_putih.jpg', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/oak_putih.jpg" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Oak Putih</span>
-        </button>
-        <button onclick="selectTexture('hpl', './models/tekstur/oak_abucorak.png', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/oak_abucorak.png" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Abu Terang</span>
-        </button>
-        <button onclick="selectTexture('hpl', './models/tekstur/oak_gelap.png', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/oak_gelap.png" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Abu Gelap</span>
-        </button>
-        
-    </div>
-</section>
-
-<script>
-    function changeProductColor(color) {
-        if (window.appChangeColor) window.appChangeColor(color);
-    }
-
-    function setFinishingType(type) {
-        const isPVC = type === 'pvc';
-        document.getElementById('pvcOptions').classList.toggle('hidden', !isPVC);
-        document.getElementById('hplOptions').classList.toggle('hidden', isPVC);
-        document.getElementById('btnPVC').className = `flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${isPVC ? 'border-[#e67e22] bg-[#e67e22] text-white' : 'border-gray-200 bg-white text-gray-500'}`;
-        document.getElementById('btnHPL').className = `flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${!isPVC ? 'border-[#e67e22] bg-[#e67e22] text-white' : 'border-gray-200 bg-white text-gray-500'}`;
-        // clear selected state
-        document.querySelectorAll('.texture-btn').forEach(b => b.classList.remove('border-[#e67e22]', '!border-[#e67e22]'));
-    }
-
-    function selectTexture(type, path, btn) {
-        // highlight selected
-        const container = type === 'pvc' ? 'pvcOptions' : 'hplOptions';
-        document.querySelectorAll(`#${container} .texture-btn`).forEach(b => {
-            b.classList.remove('border-[#e67e22]');
-            b.classList.add('border-transparent');
-        });
-        btn.classList.remove('border-transparent');
-        btn.classList.add('border-[#e67e22]');
-        if (window.appChangeTexture) window.appChangeTexture(path);
-    }
-</script>
-
-<script>
-    function changeProductColor(color) {
-        if (window.appChangeColor) window.appChangeColor(color);
-    }
-</script>
-
-            
+    <header class="sticky top-0 z-50 bg-white border-b border-stone-200">
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 h-16 flex items-center justify-between">
+            <a href="catalog.html" class="font-serif text-2xl font-light tracking-wide text-stone-900">
+                Debbi <span class="text-rust">Meubeul</span>
+            </a>
+            <div class="flex items-center gap-1">
+                <button class="p-2.5 text-stone-400 hover:text-stone-900 hover:bg-stone-50 transition-colors" title="Bantuan">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
             </div>
         </div>
+    </header>
 
-        <div id="canvas-area" class="flex-1 relative bg-[#f8fafc]">
-            <div class="absolute top-6 right-6 bg-black/40 backdrop-blur-md p-5 rounded-2xl text-white z-30 min-w-[220px]">
-                <div class="flex items-center gap-4">
-                    <div class="bg-white/20 p-2.5 rounded-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-4">
+        <div class="flex items-center gap-2 text-xs text-stone-400">
+            <a href="catalog.html" class="hover:text-stone-900 transition-colors">Katalog</a>
+            <span>/</span>
+            <span id="bcDetail" class="hover:text-stone-900 transition-colors cursor-pointer">Detail Produk</span>
+            <span>/</span>
+            <span class="text-stone-600">Simulator 3D</span>
+        </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12 pb-24">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20">
+
+            <div class="flex flex-col gap-3">
+                <div class="w-full aspect-[4/3] md:aspect-square bg-stone-50 border border-stone-200 relative overflow-hidden rounded-sm" id="canvas-area">
                     </div>
-                    <div>
-                        <p class="text-[10px] uppercase tracking-wider text-white/60">Estimasi Harga</p>
-                        <p id="totalPrice" class="text-2xl font-bold tracking-tight text-white">Rp0</p>
+                <p class="text-xs text-stone-400 text-center flex justify-center items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                    Gunakan mouse / sentuhan untuk memutar dan zoom model 3D
+                </p>
+            </div>
+
+            <div class="flex flex-col h-full">
+
+                <div class="pb-6 border-b border-stone-200">
+                    <p class="text-xs tracking-[0.12em] uppercase text-rust mb-2 font-bold">Mode Kustomisasi</p>
+                    <h1 id="uiProductName" class="font-serif font-light text-3xl md:text-4xl leading-tight text-stone-900">Memuat Produk...</h1>
+                </div>
+
+                <div class="py-6 space-y-8 flex-1">
+
+                    <section id="dimensionSection">
+                        <h4 class="text-[0.65rem] font-bold text-stone-900 tracking-widest uppercase mb-5 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rust"></span> Dimensi Ukuran (P x T x L)
+                        </h4>
+                        <div class="space-y-5 bg-stone-50 p-5 border border-stone-100 rounded-sm">
+                            <div class="control-group">
+                                <label class="flex justify-between items-center mb-2 text-xs text-stone-500 font-medium tracking-wide uppercase">
+                                    <span>Lebar (Panjang)</span>
+                                    <span class="text-stone-900 font-bold"><span id="widthValue">113</span> cm</span>
+                                </label>
+                                <input type="range" id="width" min="113" max="300" step="10" value="113">
+                            </div>
+                            <div class="control-group">
+                                <label class="flex justify-between items-center mb-2 text-xs text-stone-500 font-medium tracking-wide uppercase">
+                                    <span>Tinggi Total</span>
+                                    <span class="text-stone-900 font-bold"><span id="heightValue">113</span> cm</span>
+                                </label>
+                                <input type="range" id="height" min="113" max="300" step="10" value="113">
+                            </div>
+                            <div class="control-group">
+                                <label class="flex justify-between items-center mb-2 text-xs text-stone-500 font-medium tracking-wide uppercase">
+                                    <span>Kedalaman</span>
+                                    <span class="text-stone-900 font-bold"><span id="depthValue">40</span> cm</span>
+                                </label>
+                                <input type="range" id="depth" min="20" max="100" step="10" value="40">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="rackLayoutControls">
+                        <h4 class="text-[0.65rem] font-bold text-stone-900 tracking-widest uppercase mb-5 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rust"></span> Konfigurasi Komponen
+                        </h4>
+                        <div id="layoutGrid" class="grid grid-cols-2 gap-4 bg-stone-50 p-5 border border-stone-100 rounded-sm">
+                            </div>
+                    </section>
+
+                    <section>
+                        <h4 class="text-[0.65rem] font-bold text-stone-900 tracking-widest uppercase mb-4 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rust"></span> Pilihan Finishing
+                        </h4>
+                        
+                        <div class="flex gap-2 mb-4">
+                            <button id="btnPVC" onclick="setFinishingType('pvc')" 
+                                class="flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-bold border border-stone-900 bg-stone-900 text-white transition-colors">
+                                PVC Sheet
+                            </button>
+                            <button id="btnHPL" onclick="setFinishingType('hpl')" 
+                                class="flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-medium border border-stone-200 bg-white text-stone-500 hover:text-stone-900 transition-colors">
+                                HPL Premium
+                            </button>
+                        </div>
+
+                        <div id="pvcOptions" class="grid grid-cols-3 gap-2">
+                            <button onclick="selectTexture('pvc', './models/tekstur/warna putih.jpg', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/warna putih.jpg" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Putih</span>   
+                            </button>
+                            <button onclick="selectTexture('pvc', './models/tekstur/warna abu.avif', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/warna abu.avif" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Abu</span>
+                            </button>
+                            <button onclick="selectTexture('pvc', './models/tekstur/summer blue.avif', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/summer blue.avif" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Blue</span>
+                            </button>
+                            <button onclick="selectTexture('pvc', './models/tekstur/ultramarine.jpg', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/ultramarine.jpg" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Navy</span>
+                            </button>
+                            <button onclick="selectTexture('pvc', './models/tekstur/kayu03.jpg', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/kayu03.jpg" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Kayu</span>
+                            </button>
+                        </div>
+
+                        <div id="hplOptions" class="grid grid-cols-3 gap-2 hidden">
+                            <button onclick="selectTexture('hpl', './models/tekstur/oak_putih.jpg', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/oak_putih.jpg" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Oak Putih</span>
+                            </button>
+                            <button onclick="selectTexture('hpl', './models/tekstur/oak_abucorak.png', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/oak_abucorak.png" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Abu Terang</span>
+                            </button>
+                            <button onclick="selectTexture('hpl', './models/tekstur/oak_gelap.png', this)" 
+                                    class="texture-btn flex flex-col items-center gap-1.5 p-1 bg-stone-50 border border-stone-200 hover:border-stone-400 transition-colors">
+                                <img src="./models/tekstur/oak_gelap.png" class="w-full h-10 object-cover"/>
+                                <span class="text-[0.6rem] uppercase tracking-wider text-stone-600 font-medium">Abu Gelap</span>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="border-t border-stone-200 pt-6 mt-auto">
+                    <p class="text-[0.65rem] tracking-[0.15em] uppercase text-stone-400 mb-1 font-bold">Estimasi Total Harga</p>
+                    <p id="totalPrice" class="font-serif font-light text-4xl text-stone-900 mb-6">Rp 0</p>
+
+                    <div class="flex gap-3">
+                        <button id="btnOrder" class="flex-1 py-4 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-widest uppercase transition-colors font-medium">
+                            Simpan & Lanjut Pesan
+                        </button>
+                        <button class="w-12 h-12 border border-stone-200 hover:border-stone-900 flex items-center justify-center text-stone-400 hover:text-stone-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
-    
-    <script type="module" src="./custom.js"></script>
 
     <script>
-        const syncValues = () => {
+        // Fungsi ambil nama produk dari DB untuk Title
+        async function fetchProductData() {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('slug');
+            document.getElementById('bcDetail').addEventListener('click', () => { window.location.href = `detail.html?slug=${slug}`; });
+            
+            if (slug) {
+                try {
+                    const res = await fetch(`http://localhost:3001/api/products/${slug}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        document.getElementById('uiProductName').textContent = data.name;
+                    }
+                } catch(e) {}
+            }
+        }
+
+        // Toggles Finishing
+        function setFinishingType(type) {
+            const isPVC = type === 'pvc';
+            document.getElementById('pvcOptions').classList.toggle('hidden', !isPVC);
+            document.getElementById('hplOptions').classList.toggle('hidden', isPVC);
+            
+            const activeClass = "flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-bold border border-stone-900 bg-stone-900 text-white transition-colors";
+            const inactiveClass = "flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-medium border border-stone-200 bg-white text-stone-500 hover:text-stone-900 transition-colors";
+            
+            document.getElementById('btnPVC').className = isPVC ? activeClass : inactiveClass;
+            document.getElementById('btnHPL').className = !isPVC ? activeClass : inactiveClass;
+        }
+
+        // Toggles Texture
+        function selectTexture(type, path, btn) {
+            const container = type === 'pvc' ? 'pvcOptions' : 'hplOptions';
+            document.querySelectorAll(`#${container} .texture-btn`).forEach(b => {
+                b.classList.remove('active', 'border-stone-900');
+            });
+            btn.classList.add('active', 'border-stone-900');
+            if (window.appChangeTexture) window.appChangeTexture(path);
+        }
+
+        // Sync Slider Values
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchProductData();
             const controls = [
                 { input: 'width', display: 'widthValue' },
                 { input: 'height', display: 'heightValue' },
-                { input: 'depth', display: 'depthValue' },
-                { input: 'rackCols', display: 'rackColsValue' },
-                { input: 'rackRows', display: 'rackRowsValue' }
+                { input: 'depth', display: 'depthValue' }
             ];
-
             controls.forEach(item => {
                 const inputEl = document.getElementById(item.input);
                 const displayEl = document.getElementById(item.display);
@@ -213,8 +289,10 @@
                     inputEl.addEventListener('input', () => { displayEl.innerText = inputEl.value; });
                 }
             });
-        };
-        window.addEventListener('DOMContentLoaded', syncValues);
+        });
     </script>
+
+    <script type="module" src="./custom.js"></script>
+
 </body>
 </html>

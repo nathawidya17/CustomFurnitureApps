@@ -6,7 +6,9 @@ import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders
 // --- SECTION 1: GLOBAL CONFIG & STATE ---
 // ==========================================
 const container = document.getElementById('canvas-area');
-const PRICE_PER_UNIT = 200000;
+// GANTI BAGIAN INI
+let basePriceFromDB = 0;          // Menyimpan harga asli dari database
+const EXTRA_PART_PRICE = 200000;  // Biaya tambahan jika nambah laci/rak di luar ukuran standar
 const LERP_SPEED = 0.1;
 let scene, camera, renderer, controls, raycaster, mouse;
 let mainCabinet, rackGroup, modelPrototype, modelOriginalBox;
@@ -25,6 +27,21 @@ let lemariConfig = {
     rodPosition: 'atas', // Pilihan: 'tidak_ada', 'atas', 'tengah', 'atas_tengah'
     rightRakTop: 1,
     rightRakBottom: 1
+};
+const lemari2Parts = { 
+    frame: null, 
+    gantungan: null, 
+    rak: null, 
+    drawer: null, 
+    pintuKiri: null, 
+    pintuKanan: null 
+};
+
+let lemari2Config = {
+    kiriMode: 'gantungan',  // 'gantungan' atau 'rak'
+    kiriRak: 0,             // jumlah rak kiri (max 3, hanya jika kiriMode = 'rak')
+    kananRak: 2,            // jumlah rak kanan (max 3)
+    kananDrawer: 1,         // jumlah drawer kanan (0 atau 1)
 };
 
 // ==========================================
@@ -432,7 +449,7 @@ function buildLemari(states) {
     rakTop.position.set(-((rTopBox.max.x + rTopBox.min.x) / 2), -rTopBox.min.y, -((rTopBox.max.z + rTopBox.min.z) / 2));
     const wrapper = new THREE.Group(); wrapper.add(rakTop);
     wrapper.scale.set(scaleXRakTop, 1, 1);
-    wrapper.position.set(xCenter, yPos, wCenter.z - 0.5); // mundur 3cm dari center
+    wrapper.position.set(xCenter, yPos, wCenter.z - 0.5); 
     unit.add(wrapper);
 };
 
@@ -509,8 +526,218 @@ if (rakBawah > 0) {
     rackGroup.add(unit);
 }
 
+
 // ==========================================
-// --- SECTION 5: PRODUCT MODULE - STANDARD RACK ---
+// --- SECTION 5: LEMARI 2 PINTU          ---
+// ==========================================
+async function initLemari2(loader) {
+    productType = 'lemari2pintubiasa'; 
+    customConfig = { width: 1.2, height: 1.8, depth: 0.6 };
+    try {
+        const [f, g, rk, dr, pK, pKn] = await Promise.all([ 
+            loader.loadAsync('./models/framelemari2pintubiasa.glb'), 
+            loader.loadAsync('./models/gantunganlemari2pintubiasa.glb'),
+            loader.loadAsync('./models/raklemari2pintubiasa.glb'),
+            loader.loadAsync('./models/drawerlemari2pintubiasa.glb'),
+            loader.loadAsync('./models/pintukirilemari2pintubiasa.glb'),
+            loader.loadAsync('./models/pintukananlemari2pintubiasa.glb'),
+        ]);
+        
+        lemari2Parts.frame      = f.scene; 
+        lemari2Parts.gantungan  = g.scene; 
+        lemari2Parts.rak        = rk.scene; 
+        lemari2Parts.drawer     = dr.scene; 
+        lemari2Parts.pintuKiri  = pK.scene; 
+        lemari2Parts.pintuKanan = pKn.scene;
+        modelPrototype   = f.scene; 
+        modelOriginalBox = new THREE.Box3().setFromObject(f.scene);
+        
+        updateDisplay(); focusCamera();
+    } catch (e) { console.error("Lemari2 Load Error:", e); }
+}
+
+function buildLemari2(states) {
+    if (!lemari2Parts.frame) return;
+    const unit = new THREE.Group(); 
+    const frame = lemari2Parts.frame.clone(); 
+    applyMat(frame, true); unit.add(frame);
+
+    const fBox = new THREE.Box3().setFromObject(frame);     
+    const wCenter = new THREE.Vector3(); fBox.getCenter(wCenter);
+
+    const intMinY = fBox.min.y + 0.08;
+    const intMaxY = fBox.max.y - 0.22;
+    const splitY  = intMinY + ((intMaxY - intMinY) * 0.5);
+
+    // --- PINTU ---
+    const attachDoor2 = (doorModel, isLeft, idStr) => {
+        const door = doorModel.clone(); applyMat(door, true);
+        door.position.set(0, 0, 0); 
+        const dBox = new THREE.Box3().setFromObject(door);
+        const hinge = new THREE.Group();
+        const pivotX = isLeft ? dBox.min.x : dBox.max.x;
+        const pivotZ = dBox.min.z + 0.018; 
+        hinge.position.set(pivotX, 0, pivotZ + 0.015); 
+        door.position.set(-pivotX, 0, -pivotZ); 
+        hinge.userData = { 
+            type: 'cabinet_door', id: idStr, canOpen: true, 
+            isOpen: states.cabinet[idStr] || false, 
+            baseRotation: 0, 
+            openRotation: isLeft ? -Math.PI / 1.8 : Math.PI / 1.8
+        };
+        if (hinge.userData.isOpen) hinge.rotation.y = hinge.userData.openRotation;
+        hinge.add(door); unit.add(hinge);
+    };
+
+    attachDoor2(lemari2Parts.pintuKiri,  true,  'lemari2_kiri');
+    attachDoor2(lemari2Parts.pintuKanan, false, 'lemari2_kanan');
+
+    // --- UKURAN KOMPONEN ---
+    const totalWidth   = fBox.max.x - fBox.min.x;
+    const wallThick    = 0.015; 
+    const compWidth    = ((totalWidth - (3 * wallThick)) / 2) + 0.01; 
+    const leftCenterX  = fBox.min.x + wallThick + (compWidth / 2);
+    const rightCenterX = fBox.max.x - wallThick - (compWidth / 2);
+
+    lemari2Parts.rak.position.set(0,0,0);
+    const rBox = new THREE.Box3().setFromObject(lemari2Parts.rak);
+    const scaleXRak = compWidth / (rBox.max.x - rBox.min.x);
+    const rakH = rBox.max.y - rBox.min.y;
+
+    lemari2Parts.gantungan.position.set(0,0,0);
+    const gBox = new THREE.Box3().setFromObject(lemari2Parts.gantungan);
+    const scaleXGantungan = compWidth / (gBox.max.x - gBox.min.x);
+
+    lemari2Parts.drawer.position.set(0,0,0);
+    const drBox = new THREE.Box3().setFromObject(lemari2Parts.drawer);
+    const drawerScale = compWidth * 0.85 / (drBox.max.x - drBox.min.x);
+    const scaleXDrawer = drawerScale;
+    
+    const drawerH = drBox.max.y - drBox.min.y;
+
+    // --- HELPERS ---
+    const addRak2 = (xCenter, yPos) => {
+        const rak = lemari2Parts.rak.clone(); applyMat(rak, true);
+        rak.position.set(-((rBox.max.x + rBox.min.x) / 2), -rBox.min.y, -((rBox.max.z + rBox.min.z) / 2));
+        const wrapper = new THREE.Group(); wrapper.add(rak);
+        wrapper.scale.set(scaleXRak, 1, 1);
+        wrapper.position.set(xCenter - 0.01, yPos, wCenter.z);
+        unit.add(wrapper);
+    };
+
+    const addGantungan2 = (xCenter, yPos) => {
+        const g = lemari2Parts.gantungan.clone(); applyMat(g, true);
+        g.position.set(-((gBox.max.x + gBox.min.x) / 2), -gBox.max.y, -((gBox.max.z + gBox.min.z) / 2));
+        const wrapper = new THREE.Group(); wrapper.add(g);
+        wrapper.scale.set(scaleXGantungan, 1, 1);
+        wrapper.position.set(xCenter, yPos, wCenter.z);
+        unit.add(wrapper);
+    };
+
+
+    const addDrawer2 = (xCenter, yPos, idStr) => {
+    const dr = lemari2Parts.drawer.clone();
+    
+    dr.traverse(n => {
+        if (n.isMesh && n.material) {
+            n.material = n.material.clone();
+            n.material.side = THREE.DoubleSide;
+            n.castShadow = n.receiveShadow = true;
+            if (currentTexture) {
+                n.material.map = currentTexture;
+                n.material.color.set('#ffffff');
+            } else {
+                n.material.map = null;
+                n.material.color.set(currentColor);
+            }
+            n.material.needsUpdate = true;
+        }
+    });
+
+    dr.position.set(
+        -((drBox.max.x + drBox.min.x) / 2), 
+        -drBox.min.y, 
+        -((drBox.max.z + drBox.min.z) / 2)
+    );
+
+    const wrapper = new THREE.Group(); wrapper.add(dr);
+
+    const drawerScale  = compWidth * 0.94 / (drBox.max.x - drBox.min.x);
+    const lebarAsli    = drBox.max.x - drBox.min.x;
+    const lebarBaru    = lebarAsli * drawerScale;
+    const selisih      = (compWidth - lebarBaru) / 2;
+
+    wrapper.scale.set(drawerScale, 1, 1);
+    wrapper.position.set(xCenter - selisih, yPos, wCenter.z);
+
+    const isOpen = states.cabinet[idStr] || false;
+    wrapper.userData = { 
+        type: 'cabinet_drawer',
+        id: idStr, 
+        canOpen: true,
+        isOpen,
+        baseZ: wCenter.z,
+        openZ: wCenter.z + 1.5
+    };
+    if (isOpen) wrapper.position.z = wCenter.z + 0.35;
+    unit.add(wrapper);
+};
+
+// --- RUANG KIRI ---
+if (lemari2Config.kiriMode === 'gantungan') {
+    // Gantungan tepat di bawah garis tengah
+    addGantungan2(leftCenterX, splitY - (-2.6));
+} else {
+    const rakKiri = Math.min(lemari2Config.kiriRak, 3);
+    if (rakKiri > 0) {
+        const gap = 2;
+        const totalRakH = rakKiri * rakH + (rakKiri - 1) * gap;
+        const startY = intMinY + ((intMaxY - intMinY - totalRakH) / 3.5) ; // geser ke bawah 5cm
+        for (let i = 0; i < rakKiri; i++) {
+            addRak2(leftCenterX, startY + i * (rakH + gap));
+        }
+    }
+}
+
+// --- RUANG KANAN ---
+const maxRakKanan = lemari2Config.kananDrawer > 0 ? 2 : 3;
+const rakKanan = Math.min(lemari2Config.kananRak, maxRakKanan);
+
+if (lemari2Config.kananDrawer > 0) {
+    // Drawer posisinya di tengah zona kanan
+    const drawerY = splitY - drawerH * 0.5 - 0.02;
+    addDrawer2(rightCenterX, drawerY, 'lemari2_drawer');
+
+    // Rak ATAS drawer — tepat di atas drawer dengan sedikit gap
+    if (rakKanan >= 1) {
+        const rakAtasY = drawerY + drawerH * 0.5 + rakH * 0.5 + 0.5;
+        addRak2(rightCenterX, rakAtasY);
+    }
+
+    // Rak BAWAH drawer — di bawah drawer dengan gap lebih jauh
+    const rakBawah = rakKanan - 1;
+    if (rakBawah > 0) {
+        const rakBawahY = drawerY - drawerH * 0.5 - rakH * 0.5 - 2;
+        addRak2(rightCenterX, rakBawahY);
+    }
+}else {
+    // Tidak ada drawer
+    if (rakKanan > 0) {
+        const gap = 2;
+        const totalRakH = rakKanan * rakH + (rakKanan - 1) * gap;
+        const startY = intMinY + ((intMaxY - intMinY - totalRakH) / 3.5);
+        for (let i = 0; i < rakKanan; i++) {
+            addRak2(rightCenterX, startY + i * (rakH + gap));
+        }
+    }
+}
+
+    rackGroup.add(unit);
+}
+
+
+// ==========================================
+// --- SECTION 6: PRODUCT MODULE - STANDARD RACK ---
 // ==========================================
 async function initStandard(loader) {
     productType = 'rack'; 
@@ -561,7 +788,7 @@ function buildStandard() {
     }
 }
 // ==========================================
-// --- SECTION 6: CONTROLLER & LOGIC ROUTING ---
+// --- SECTION 7: CONTROLLER & LOGIC ROUTING ---
 // ==========================================
 window.updateDoorType = (colIndex, val) => { cabinetDoorTypes[colIndex] = val; updateDisplay(); };
 
@@ -586,6 +813,38 @@ window.updateLemariConfig = (key, val) => {
     updateDisplay(); 
 };
 
+window.updateLemari2Config = (key, val) => {
+    if (key === 'kiriMode') {
+        lemari2Config.kiriMode = val;
+        const wrapper = document.getElementById('kiriRakWrapper');
+        if (wrapper) wrapper.style.display = val === 'rak' ? 'block' : 'none';
+        if (val === 'gantungan') lemari2Config.kiriRak = 0;
+    } else {
+        let num = parseInt(val) || 0;
+        if (key === 'kiriRak')     num = Math.min(Math.max(num, 0), 3);
+        if (key === 'kananDrawer') num = Math.min(Math.max(num, 0), 1);
+        if (key === 'kananRak') {
+            const maxRak = lemari2Config.kananDrawer > 0 ? 2 : 3;
+            num = Math.min(Math.max(num, 0), maxRak);
+            // Update max attribute di input
+            const el = document.getElementById('input_kananRak');
+            if (el) el.max = maxRak;
+        }
+        lemari2Config[key] = num;
+        const el = document.getElementById(`input_${key}`);
+        if (el) el.value = num;
+
+        // Jika drawer berubah, re-clamp rak kanan juga
+        if (key === 'kananDrawer') {
+            const maxRak = num > 0 ? 2 : 3;
+            lemari2Config.kananRak = Math.min(lemari2Config.kananRak, maxRak);
+            const rakEl = document.getElementById('input_kananRak');
+            if (rakEl) { rakEl.max = maxRak; rakEl.value = lemari2Config.kananRak; }
+        }
+    }
+    updateDisplay();
+};
+
 function renderDoorControls() {
     const container = document.getElementById('doorConfigContainer'); if (!container) return;
     let html = `<div class="col-span-full border-t border-gray-200 mt-2 pt-5"><h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Tipe Pintu Per Kolom</h4><div class="space-y-3">`;
@@ -602,22 +861,70 @@ function renderDoorControls() {
     html += `</div></div>`; container.innerHTML = html;
 }
 
+// --- BAGIAN YANG DIROMBAK: MENGAMBIL PARAM SLUG DARI DATABASE ---
 async function loadProduct() {
-    const urlParams = new URLSearchParams(window.location.search); const modelId = urlParams.get('id') || 'rak'; const loader = new GLTFLoader();
-    document.getElementById('rackLayoutControls').style.display = 'block';
-    const layoutGrid = document.querySelector('#rackLayoutControls #layoutGrid'); const dimensionSection = document.getElementById('dimensionSection'); 
+    const urlParams = new URLSearchParams(window.location.search); 
+    const slug = urlParams.get('slug'); // Ambil slug dari URL
+    const loader = new GLTFLoader();
 
-    if (modelId === 'hiro_drawer') {
+    document.getElementById('rackLayoutControls').style.display = 'block';
+    const layoutGrid = document.querySelector('#rackLayoutControls #layoutGrid'); 
+    const dimensionSection = document.getElementById('dimensionSection'); 
+
+    if (!slug) {
+        console.warn("Parameter slug tidak ditemukan! Fallback ke model standar.");
+    }
+
+    // 1. Fetch data produk dari Database
+   // 1. Fetch data produk dari Database
+    let productData = null;
+    try {
+        if (slug) {
+            const res = await fetch(`http://localhost:3001/api/products/${slug}`);
+            if (res.ok) {
+                productData = await res.json();
+                basePriceFromDB = productData.basePrice; // <--- TAMBAHKAN BARIS INI
+            }
+        }
+    } catch (e) {
+        console.error("Gagal mengambil data dari database:", e);
+    }
+
+    // 2. Pemetaan SLUG dari Database ke Internal Model ID
+    // 2. Pemetaan SLUG dari Database ke Internal Model ID
+    let internalModelId = 'rack'; // default
+    if (slug) {
+        // Kita ubah jadi huruf kecil semua biar pencariannya gak meleset
+        const s = slug.toLowerCase();
+        
+        // Logika baru: Cek kata kunci spesifik yang ada di phpMyAdmin lu
+        if (s.includes('kaca')) {
+            internalModelId = 'lemari'; // Lemari 2 Pintu Kaca
+        } else if (s.includes('kabinet')) {
+            internalModelId = 'lemari-kabinet'; // Lemari Kabinet
+        } else if (s.includes('2 pintu')) {
+            internalModelId = 'lemari2pintubiasa'; // Lemari 2 Pintu Biasa
+        } else if (s.includes('hiro') && s.includes('rak')) {
+            internalModelId = 'hiro_rak2drawer'; // Hiro 2 Rak 2 Drawer
+        } else if (s.includes('hiro')) {
+            internalModelId = 'hiro_drawer'; // Hiro Drawer 2 ST
+        } else {
+            internalModelId = 'rack'; // Rak Serbaguna
+        }
+    }
+
+    // 3. Eksekusi Fungsi Internal 3D (TIDAK ADA LOGIKA 3D YANG BERUBAH)
+    if (internalModelId === 'hiro_drawer') {
         if(dimensionSection) dimensionSection.style.display = 'none'; 
         layoutGrid.innerHTML = `<div id="colWrapper"><label class="block text-gray-600 text-sm font-medium mb-3">Tambah Drawer (<span id="drawerVal">${numDrawer}</span>)</label><input type="number" id="inputDrawer" min="0" max="10" value="${numDrawer}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div><div id="rowWrapper"><label class="block text-gray-600 text-sm font-medium mb-3">Tambah Laci (<span id="laciVal">${numLaci}</span>)</label><input type="number" id="inputLaci" min="0" max="10" value="${numLaci}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div>`; 
         await initHiro(loader);
     } 
-    else if (modelId === 'lemari-kabinet') {
+    else if (internalModelId === 'lemari-kabinet') {
         if(dimensionSection) dimensionSection.style.display = 'none'; 
         layoutGrid.innerHTML = `<div id="colWrapper"><label class="block text-gray-600 text-sm font-medium mb-3">Samping (<span id="rackColsValue">${rackCols}</span>)</label><input type="number" id="rackCols" min="1" max="10" value="${rackCols}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div><div id="rowWrapper"><label class="block text-gray-600 text-sm font-medium mb-3">Atas (<span id="rackRowsValue">${rackRows}</span>)</label><input type="number" id="rackRows" min="1" max="10" value="${rackRows}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div><div id="doorConfigContainer" class="col-span-2"></div>`; 
         await initCabinet(loader);
     } 
-    else if (modelId === 'lemari') {
+    else if (internalModelId === 'lemari') {
         if(dimensionSection) dimensionSection.style.display = 'none'; 
         layoutGrid.innerHTML = `
             <div class="col-span-full mb-2"><h4 class="text-[13px] font-bold text-[#e67e22] uppercase tracking-wider">Ruang Kiri</h4></div>
@@ -639,26 +946,68 @@ async function loadProduct() {
         `; 
         await initLemari(loader);
     } 
- else if (modelId === 'hiro_rak2drawer') {
-    if(dimensionSection) dimensionSection.style.display = 'none'; 
-    layoutGrid.innerHTML = `
-        <div id="colWrapper">
-            <label class="block text-gray-600 text-sm font-medium mb-3">
-                Jumlah Drawer (<span id="drawerVal">${numRak2Drawer}</span>)
-            </label>
-            <input type="number" id="inputDrawer" min="2" max="6" value="${numRak2Drawer}" 
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
-        </div>
-        <div id="rowWrapper">
-            <label class="block text-gray-600 text-sm font-medium mb-3">
-                Jumlah Laci Kosong (<span id="laciVal">${numRak2Laci}</span>)
-            </label>
-            <input type="number" id="inputLaci" min="1" max="8" value="${numRak2Laci}" 
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
-        </div>
-    `; 
-    await initHiroRak2(loader);
-}
+    else if (internalModelId === 'lemari2pintubiasa') {
+        if(dimensionSection) dimensionSection.style.display = 'none'; 
+        layoutGrid.innerHTML = `
+            <div class="col-span-full mb-2">
+                <h4 class="text-[13px] font-bold text-[#e67e22] uppercase tracking-wider">Ruang Kiri</h4>
+            </div>
+            <div class="col-span-2">
+                <label class="block text-gray-500 text-xs font-medium mb-2">Mode Ruang Kiri</label>
+                <select onchange="window.updateLemari2Config('kiriMode', this.value)" 
+                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-[#e67e22] text-sm bg-white">
+                    <option value="gantungan" ${lemari2Config.kiriMode === 'gantungan' ? 'selected':''}>Gantungan Baju</option>
+                    <option value="rak"       ${lemari2Config.kiriMode === 'rak'       ? 'selected':''}>Rak (Max 3)</option>
+                </select>
+            </div>
+            <div class="col-span-2" id="kiriRakWrapper" style="display:${lemari2Config.kiriMode === 'rak' ? 'block' : 'none'}">
+                <label class="block text-gray-500 text-xs font-medium mb-2">Jumlah Rak Kiri (Max 3)</label>
+                <input type="number" id="input_kiriRak" 
+                    oninput="window.updateLemari2Config('kiriRak', this.value)" 
+                    min="0" max="3" value="${lemari2Config.kiriRak}" 
+                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-[#e67e22] text-sm">
+            </div>
+
+            <div class="col-span-full mt-4 mb-2">
+                <h4 class="text-[13px] font-bold text-[#e67e22] uppercase tracking-wider">Ruang Kanan</h4>
+            </div>
+            <div>
+                <label class="block text-gray-500 text-xs font-medium mb-2">Jumlah Rak (Max 3)</label>
+                <input type="number" id="input_kananRak" 
+                    oninput="window.updateLemari2Config('kananRak', this.value)" 
+                    min="0" max="3" value="${lemari2Config.kananRak}" 
+                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-[#e67e22] text-sm">
+            </div>
+            <div>
+                <label class="block text-gray-500 text-xs font-medium mb-2">Drawer (0 atau 1)</label>
+                <input type="number" id="input_kananDrawer" 
+                    oninput="window.updateLemari2Config('kananDrawer', this.value)" 
+                    min="0" max="1" value="${lemari2Config.kananDrawer}" 
+                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-[#e67e22] text-sm">
+            </div>
+        `; 
+        await initLemari2(loader);
+    }
+    else if (internalModelId === 'hiro_rak2drawer') {
+        if(dimensionSection) dimensionSection.style.display = 'none'; 
+        layoutGrid.innerHTML = `
+            <div id="colWrapper">
+                <label class="block text-gray-600 text-sm font-medium mb-3">
+                    Jumlah Drawer (<span id="drawerVal">${numRak2Drawer}</span>)
+                </label>
+                <input type="number" id="inputDrawer" min="2" max="6" value="${numRak2Drawer}" 
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
+            </div>
+            <div id="rowWrapper">
+                <label class="block text-gray-600 text-sm font-medium mb-3">
+                    Jumlah Laci Kosong (<span id="laciVal">${numRak2Laci}</span>)
+                </label>
+                <input type="number" id="inputLaci" min="1" max="8" value="${numRak2Laci}" 
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none">
+            </div>
+        `; 
+        await initHiroRak2(loader);
+    }
     else {
         if(dimensionSection) dimensionSection.style.display = 'block'; 
         layoutGrid.innerHTML = `<div id="colWrapper"><label class="block text-gray-600 text-sm font-medium mb-3">Kolom (<span id="rackColsValue">${rackCols}</span>)</label><input type="number" id="rackCols" min="1" max="10" value="${rackCols}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div><div id="rowWrapper"><label id="rowLabel" class="block text-gray-600 text-sm font-medium mb-3">Baris (<span id="rackRowsValue">${rackRows}</span>)</label><input type="number" id="rackRows" min="1" max="10" value="${rackRows}" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#e67e22] outline-none"></div>`; 
@@ -669,11 +1018,11 @@ async function loadProduct() {
 function updateDisplay() {
     if (!modelPrototype) return; const currentStates = getInteractiveStates();
     if (rackGroup) mainCabinet.remove(rackGroup); rackGroup = new THREE.Group();
-    
     if (productType === 'hiro') buildHiro(currentStates); 
-    else if (productType === 'hiro_rak2drawer') buildHiroRak2(currentStates); // <-- tambah ini
+    else if (productType === 'hiro_rak2drawer') buildHiroRak2(currentStates); 
     else if (productType === 'lemari_kabinet') buildCabinet(currentStates); 
     else if (productType === 'lemari') buildLemari(currentStates); 
+    else if (productType === 'lemari2pintubiasa') buildLemari2(currentStates);
     else buildStandard();
     
     const finalBox = new THREE.Box3().setFromObject(rackGroup); const center = new THREE.Vector3(); finalBox.getCenter(center);
@@ -681,7 +1030,7 @@ function updateDisplay() {
 }
 
 // ==========================================
-// --- SECTION 7: CORE 3D ENGINE & UTILITIES ---
+// --- SECTION 8: CORE 3D ENGINE & UTILITIES ---
 // ==========================================
 async function init() { setupScene(); setupLights(); setupEnvironment(); mainCabinet = new THREE.Group(); scene.add(mainCabinet); await loadProduct(); setupEventListeners(); animate(); }
 
@@ -818,10 +1167,15 @@ function applyMat(obj, isHiro) {
                 const r = n.material.color.r, g = n.material.color.g, b = n.material.color.b;
                 const isGrey = (Math.abs(r - g) < 0.05 && Math.abs(g - b) < 0.05 && r < 0.85); 
                 const isKnobName = (n.name + " " + n.material.name).toLowerCase().match(/handle|knob|gagang|kenop|abu|grey|bulat/);
-                if (!isGrey && !isKnobName) { 
+
+                // Hapus filter isGrey untuk drawer — paksa semua mesh ikut warna/tekstur
+                const forceApply = obj.userData?.type === 'cabinet_drawer' || 
+                                   n.parent?.userData?.type === 'cabinet_drawer';
+
+                if ((!isGrey && !isKnobName) || forceApply) { 
                     if (currentTexture) {
                         n.material.map = currentTexture;
-                        n.material.color.set('#ffffff'); // reset warna biar tekstur keliatan
+                        n.material.color.set('#ffffff');
                     } else {
                         n.material.map = null;
                         n.material.color.set(currentColor);
@@ -850,25 +1204,30 @@ window.appChangeTexture = (texturePath) => {
 };
 
 function updatePriceUI() { 
-    let finalPrice = 0;
+    // 1. SET HARGA AWAL MURNI DARI DATABASE MYSQL
+    let finalPrice = basePriceFromDB || 0; 
 
+    // 2. HITUNG BIAYA TAMBAHAN DARI KUSTOMISASI
     if (productType === 'hiro') {
-        finalPrice = (numDrawer + numLaci) * PRICE_PER_UNIT;
+        // Asumsi bawaan Hiro ada 3 part (2 drawer, 1 laci)
+        let extraParts = (numDrawer + numLaci) - 3;
+        if (extraParts > 0) finalPrice += (extraParts * EXTRA_PART_PRICE);
     } 
     else if (productType === 'hiro_rak2drawer') {
-        finalPrice = (numRak2Drawer + numRak2Laci) * PRICE_PER_UNIT;
+        // Asumsi bawaan ada 4 part (2 drawer, 2 laci)
+        let extraParts = (numRak2Drawer + numRak2Laci) - 4; 
+        if (extraParts > 0) finalPrice += (extraParts * EXTRA_PART_PRICE);
     } 
     else if (productType === 'lemari_kabinet') {
-        finalPrice = (rackCols * rackRows) * PRICE_PER_UNIT;
+        // Asumsi bawaan kabinet 2x3 = 6 kolom/baris
+        let extraParts = (rackCols * rackRows) - 6; 
+        if (extraParts > 0) finalPrice += (extraParts * EXTRA_PART_PRICE);
     }
     else if (productType === 'rack') {
-        const BASE_PRICE    = 300000; // harga dasar 3x3
-        const BASE_COLS     = 3;
-        const BASE_ROWS     = 3;
-        const PRICE_PER_RAK = 25000;  // per 1 rak tambahan
-        const PRICE_PER_10CM = 20000; // per 10cm tambahan
+        // Rumus hitungan dimensi rak custom lu tetap jalan normal
+        const PRICE_PER_RAK = 25000;  
+        const PRICE_PER_10CM = 20000; 
 
-        // Tambahan dari ukuran (per 10cm dari default 113cm)
         const defaultCm  = 113;
         const defaultDepthCm = 40;
         const currentWcm = Math.round(customConfig.width  * 100);
@@ -879,24 +1238,28 @@ function updatePriceUI() {
         const stepsD     = Math.max(0, Math.floor((currentDcm - defaultDepthCm) / 10));
         const dimExtra   = (stepsW + stepsH + stepsD) * PRICE_PER_10CM;
 
-        // Tambahan dari jumlah rak
         const totalRaks  = rackCols * rackRows;
-        const baseRaks   = BASE_COLS * BASE_ROWS; // 9
-        const extraRaks  = Math.max(0, totalRaks - baseRaks);
+        const extraRaks  = Math.max(0, totalRaks - 9); // default 3x3 = 9
         const rakExtra   = extraRaks * PRICE_PER_RAK;
 
-        finalPrice = BASE_PRICE + dimExtra + rakExtra;
+        // Tambahkan biaya extra dimensi & rak ke harga dasar DB
+        finalPrice += dimExtra + rakExtra; 
     }
     else if (productType === 'lemari') {
-        let count = 3; 
-        count += (lemariConfig.leftRak + lemariConfig.rightRakTop + lemariConfig.rightRakBottom) * 0.2; 
-        if (lemariConfig.rodPosition !== 'tidak_ada') count += 0.5;
-        finalPrice = count * PRICE_PER_UNIT;
+        // Asumsi bawaan 3 Rak kiri, 1 Rak Atas, 1 Rak Bawah (Total part = 5)
+        let customParts = (lemariConfig.leftRak + lemariConfig.rightRakTop + lemariConfig.rightRakBottom); 
+        let extraParts = customParts - 5;
+        if (extraParts > 0) finalPrice += (extraParts * 100000); 
+    }
+    else if (productType === 'lemari2pintubiasa') {
+        // Asumsi bawaan: 0 Kiri Rak, 2 Kanan Rak, 1 Kanan Drawer (Total = 3)
+        let customParts = (lemari2Config.kiriRak + lemari2Config.kananRak + lemari2Config.kananDrawer);
+        let extraParts = customParts - 3;
+        if (extraParts > 0) finalPrice += (extraParts * 100000);
     }
 
     document.getElementById('totalPrice').textContent = `Rp${finalPrice.toLocaleString('id-ID')}`;
 }
-
 function updateUIValues(w, h, d) { 
     const elW = document.getElementById('widthValue'); if(elW) elW.innerText = Math.round(w); 
     const elH = document.getElementById('heightValue'); if(elH) elH.innerText = Math.round(h); 
@@ -912,8 +1275,9 @@ function focusCamera(dist) {
     const size = new THREE.Vector3(); 
     box.getCenter(center); 
     box.getSize(size); 
-    controls.target.copy(center); 
+    controls.target.copy(center);
     const d = dist || Math.max(size.x, size.y) * 2.5;
+    camera.position.set(0, center.y, d); // tepat di tengah, lurus ke depan
     controls.update(); 
 }
 function animate() { 
