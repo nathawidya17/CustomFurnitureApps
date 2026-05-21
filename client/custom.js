@@ -761,17 +761,30 @@ function setupScene() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xe8e6e1);
     scene.fog = new THREE.Fog(0xe8e6e1, 25, 70);
-    camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+    const canvasEl = document.getElementById('canvas-area');
+    camera = new THREE.PerspectiveCamera(45, canvasEl.clientWidth / canvasEl.clientHeight, 0.1, 1000);
     camera.position.set(0, 1.2, 5);
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(canvasEl.clientWidth, canvasEl.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
-    container.appendChild(renderer.domElement);
+    canvasEl.appendChild(renderer.domElement);
+
+    // Renderer ikut resize window
+    window.addEventListener('resize', () => {
+        const w = canvasEl.clientWidth;
+        const h = canvasEl.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    });
+
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
@@ -1001,16 +1014,17 @@ function updateUIValues(w, h, d) {
     set('width', w); set('height', h); set('depth', d);
 }
 
-function focusCamera(dist) {
-    const box = new THREE.Box3().setFromObject(mainCabinet);
-    const center = new THREE.Vector3(); const size = new THREE.Vector3();
-    box.getCenter(center); box.getSize(size);
-    controls.target.copy(center);
+function focusCamera(dist) { 
+    const box = new THREE.Box3().setFromObject(mainCabinet); 
+    const center = new THREE.Vector3(); 
+    const size = new THREE.Vector3(); 
+    box.getCenter(center); 
+    box.getSize(size); 
+    controls.target.set(center.x, center.y, center.z);
     const d = dist || Math.max(size.x, size.y) * 2.5;
-    camera.position.set(0, center.y, d);
-    controls.update();
+    camera.position.set(center.x, center.y, d);
+    controls.update(); 
 }
-
 function animate() {
     requestAnimationFrame(animate);
     if (rackGroup) rackGroup.traverse(c => {

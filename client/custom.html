@@ -46,334 +46,327 @@
     </script>
 
     <style>
-        body { -webkit-font-smoothing: antialiased; }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { -webkit-font-smoothing: antialiased; overflow: hidden; }
 
-        /* Range slider — minimal, konsisten dengan desain */
+        /* Canvas full layar di bawah header */
+        #canvas-area {
+            position: fixed;
+            top: 64px; /* tinggi header */
+            left: 0;
+            right: 200px;
+            bottom: 0;
+            z-index: 0;
+        }
+
+        /* Panel kanan mengapung */
+        #side-panel {
+            position: fixed;
+            top: 64px;
+            right: 0;
+            bottom: 0;
+            width: 400px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-left: 1px solid #e5e3df;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Scrollbar tipis */
+        #side-panel::-webkit-scrollbar { width: 3px; }
+        #side-panel::-webkit-scrollbar-track { background: transparent; }
+        #side-panel::-webkit-scrollbar-thumb { background: #d0ceca; }
+
+        /* Range slider */
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
         input[type=range]:focus { outline: none; }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 1px; background: #d0ceca;
-        }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 1px; background: #d0ceca; }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 14px; width: 14px;
-            border-radius: 50%;
-            background: #1a1a18;
-            cursor: pointer;
-            margin-top: -6px;
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 0 1px #1a1a18;
-            transition: transform 0.15s;
+            -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%;
+            background: #1a1a18; cursor: pointer; margin-top: -6px;
+            border: 2px solid #ffffff; box-shadow: 0 0 0 1px #1a1a18; transition: transform 0.15s;
         }
         input[type=range]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
-        /* Override injeksi dari custom.js */
+        /* Input & select injeksi dari custom.js */
         #layoutGrid select,
         #layoutGrid input[type="number"] {
             border: 1px solid #e5e3df !important;
             border-radius: 0 !important;
             font-family: "DM Sans", sans-serif !important;
-            font-size: 0.85rem !important;
+            font-size: 0.82rem !important;
             background: #ffffff;
             color: #1a1a18;
             width: 100%;
-            padding: 0.5rem 0.75rem;
+            padding: 0.45rem 0.65rem;
             outline: none;
             transition: border-color 0.15s;
         }
         #layoutGrid select:focus,
-        #layoutGrid input[type="number"]:focus {
-            border-color: #1a1a18 !important;
-            box-shadow: none !important;
-        }
+        #layoutGrid input[type="number"]:focus { border-color: #1a1a18 !important; box-shadow: none !important; }
 
-        /* Label injeksi dari custom.js */
         #layoutGrid label {
             display: block;
-            font-size: 0.7rem !important;
+            font-size: 0.65rem !important;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: #8a8a84 !important;
             font-weight: 400 !important;
-            margin-bottom: 0.5rem !important;
+            margin-bottom: 0.4rem !important;
             font-family: "DM Sans", sans-serif !important;
         }
-
-        /* h4 injeksi */
-        #layoutGrid h4 {
+        #layoutGrid p {
             font-size: 0.65rem !important;
-            letter-spacing: 0.12em !important;
-            text-transform: uppercase !important;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
             color: #555550 !important;
             font-weight: 500 !important;
             font-family: "DM Sans", sans-serif !important;
-            margin-bottom: 0.75rem !important;
+            margin-bottom: 0.6rem !important;
         }
 
-        /* doorConfigContainer injeksi */
-        #doorConfigContainer .space-y-3 > div {
+        #doorConfigContainer .space-y-3 > div,
+        #doorConfigContainer .space-y-2 > div {
             background: #ffffff !important;
             border: 1px solid #e5e3df !important;
             border-radius: 0 !important;
-            padding: 0.75rem 1rem !important;
+            padding: 0.65rem 0.85rem !important;
             box-shadow: none !important;
         }
         #doorConfigContainer select {
             border: 1px solid #e5e3df !important;
             border-radius: 0 !important;
             font-family: "DM Sans", sans-serif !important;
-            font-size: 0.8rem !important;
-            padding: 0.4rem 0.75rem !important;
-            outline: none;
-            background: #f8f7f5;
+            font-size: 0.78rem !important;
+            padding: 0.35rem 0.65rem !important;
+            outline: none; background: #f8f7f5;
         }
         #doorConfigContainer select:focus { border-color: #1a1a18 !important; }
-        #doorConfigContainer span { font-size: 0.8rem !important; color: #555550 !important; }
+        #doorConfigContainer span { font-size: 0.78rem !important; color: #555550 !important; }
 
-        /* Texture button active state */
         .texture-btn.active { border-color: #1a1a18 !important; }
 
-        /* Scrollbar tipis untuk panel kanan */
-        .panel-scroll::-webkit-scrollbar { width: 3px; }
-        .panel-scroll::-webkit-scrollbar-track { background: transparent; }
-        .panel-scroll::-webkit-scrollbar-thumb { background: #d0ceca; }
+        /* Hint rotate */
+        #rotate-hint {
+    position: fixed;
+    bottom: 16px;
+    left: 0;
+    right: 200px;  /* sama dengan canvas, sisakan panel */
+    display: flex;
+    justify-content: center;
+    z-index: 5;
+    pointer-events: none;
+}
 
-        /* Animasi panel section */
-        @keyframes fadeUp {
-            0%   { opacity: 0; transform: translateY(8px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .panel-section { animation: fadeUp 0.35s ease both; }
-
-        /* Custom select arrow */
-        .custom-select {
-            -webkit-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a8a84' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 2rem !important;
+        /* Mobile: panel di bawah */
+        @media (max-width: 768px) {
+            body { overflow: auto; }
+            #canvas-area {
+                position: relative;
+                top: 0; left: 0; right: auto; bottom: auto;
+                width: 100%;
+                height: 60vw;
+                min-height: 280px;
+            }
+            #side-panel {
+                position: relative;
+                top: 0; right: 0;
+                width: 100%;
+                height: auto;
+                backdrop-filter: none;
+                background: #ffffff;
+                border-left: none;
+                border-top: 1px solid #e5e3df;
+            }
         }
     </style>
 </head>
 <body class="bg-white font-sans text-stone-900">
 
-    <!-- ── HEADER ─────────────────────────────────── -->
-    <header class="sticky top-0 z-50 bg-white border-b border-stone-200">
-        <div class="max-w-[1400px] mx-auto px-8 md:px-12 h-16 flex items-center justify-between">
+    <!-- ── HEADER ───────────────────────────────────── -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200" style="height:64px">
+        <div class="max-w-full px-6 h-full flex items-center justify-between">
             <a href="catalog.html" class="font-serif text-2xl font-light tracking-wide text-stone-900">
                 Debbi <span class="text-rust">Meubeul</span>
             </a>
             <div class="flex items-center gap-4">
-                <span class="hidden md:inline-flex items-center gap-1.5 text-xs text-stone-400 tracking-wide">
-                    <span class="w-1.5 h-1.5 rounded-full bg-rust"></span>
-                    Mode Simulator 3D
+                <!-- Breadcrumb inline di header -->
+                <div class="hidden md:flex items-center gap-2 text-xs text-stone-400">
+                    <a href="catalog.html" class="hover:text-stone-900 transition-colors">Katalog</a>
+                    <span class="text-stone-200">/</span>
+                    <span id="bcDetail" class="hover:text-stone-900 transition-colors cursor-pointer">Detail</span>
+                    <span class="text-stone-200">/</span>
+                    <span class="text-stone-600">Simulator 3D</span>
+                </div>
+                <span class="inline-flex items-center gap-1.5 text-xs text-stone-400 tracking-wide">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rust animate-pulse"></span>
+                    Mode 3D
                 </span>
-                <button class="p-2.5 text-stone-400 hover:text-stone-900 hover:bg-stone-50 transition-colors" title="Bantuan">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </button>
             </div>
         </div>
     </header>
 
-    <!-- ── BREADCRUMB ──────────────────────────────── -->
-    <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-3.5">
-        <div class="flex items-center gap-2 text-xs text-stone-400">
-            <a href="catalog.html" class="hover:text-stone-900 transition-colors">Katalog</a>
-            <span class="text-stone-200">/</span>
-            <span id="bcDetail" class="hover:text-stone-900 transition-colors cursor-pointer">Detail Produk</span>
-            <span class="text-stone-200">/</span>
-            <span class="text-stone-600">Simulator 3D</span>
-        </div>
+    <!-- ── CANVAS 3D FULL ────────────────────────────── -->
+    <div id="canvas-area"></div>
+
+    <!-- ── HINT ─────────────────────────────────────── -->
+    <div id="rotate-hint">
+        <span class="flex items-center gap-1.5 text-[0.65rem] tracking-wide uppercase text-white/70 bg-black/30 backdrop-blur-sm px-3 py-1.5">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/>
+            </svg>
+            Putar &amp; zoom dengan mouse
+        </span>
     </div>
 
-    <div class="max-w-[1400px] mx-auto px-8 md:px-12">
-        <hr class="border-stone-200">
-    </div>
+    <!-- ── SIDE PANEL ────────────────────────────────── -->
+    <div id="side-panel">
+        <div class="flex flex-col h-full p-6 gap-0">
 
-    <!-- ── MAIN LAYOUT ─────────────────────────────── -->
-    <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-8 pb-24">
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_460px] gap-8 xl:gap-14 items-start">
-
-            <!-- LEFT: 3D Canvas -->
-            <div class="flex flex-col gap-3 lg:sticky lg:top-24">
-                <div class="w-full aspect-[4/3] md:aspect-square bg-stone-100 border border-stone-200 relative overflow-hidden"
-                     id="canvas-area">
-                    <!-- Three.js mounts here -->
-                </div>
-                <p class="text-[0.7rem] tracking-wide text-stone-400 text-center flex items-center justify-center gap-2 uppercase">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
-                    </svg>
-                    Putar &amp; zoom model dengan mouse atau sentuhan
-                </p>
+            <!-- Nama produk -->
+            <div class="pb-5 border-b border-stone-200 flex-shrink-0">
+                <p class="text-[0.6rem] tracking-[0.14em] uppercase text-stone-400 mb-1.5">Kustomisasi</p>
+                <h1 id="uiProductName" class="font-serif font-light text-2xl leading-tight text-stone-900">Memuat...</h1>
             </div>
 
-            <!-- RIGHT: Controls Panel -->
-            <div class="flex flex-col panel-scroll" style="max-height: calc(100vh - 120px); overflow-y: auto;">
+            <!-- Scroll area -->
+            <div class="flex-1 overflow-y-auto" style="scrollbar-width:thin;scrollbar-color:#d0ceca transparent;">
 
-                <!-- Product Title -->
-                <div class="pb-6 border-b border-stone-200 panel-section" style="animation-delay:0ms">
-                    <p class="text-[0.65rem] tracking-[0.14em] uppercase text-stone-400 mb-2">Kustomisasi Produk</p>
-                    <h1 id="uiProductName" class="font-serif font-light text-3xl md:text-4xl leading-tight text-stone-900">
-                        Memuat...
-                    </h1>
-                </div>
-
-                <!-- ── DIMENSI ──────────────────────────── -->
-                <section id="dimensionSection" class="py-6 border-b border-stone-200 panel-section" style="animation-delay:60ms">
-                    <p class="text-[0.65rem] tracking-[0.14em] uppercase text-stone-500 mb-5 flex items-center gap-2">
+                <!-- DIMENSI -->
+                <section id="dimensionSection" class="py-5 border-b border-stone-200">
+                    <p class="text-[0.6rem] tracking-[0.14em] uppercase text-stone-400 mb-4 flex items-center gap-1.5">
                         <span class="w-1 h-1 rounded-full bg-rust inline-block"></span>
                         Dimensi Ukuran
                     </p>
-                    <div class="space-y-6">
-
-                        <!-- Lebar -->
+                    <div class="space-y-5">
                         <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="text-xs uppercase tracking-widest text-stone-500">Lebar</label>
-                                <span class="text-sm font-light text-stone-900 tabular-nums">
-                                    <span id="widthValue">113</span> cm
-                                </span>
+                            <div class="flex items-center justify-between mb-2.5">
+                                <label class="text-xs uppercase tracking-widest text-stone-400">Lebar</label>
+                                <span class="text-sm font-light text-stone-900 tabular-nums"><span id="widthValue">113</span> cm</span>
                             </div>
-                            <input type="range" id="width" min="113" max="300" step="10" value="113"
-                                   class="w-full cursor-pointer">
+                            <input type="range" id="width" min="113" max="300" step="10" value="113" class="w-full cursor-pointer">
                         </div>
-
-                        <!-- Tinggi -->
                         <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="text-xs uppercase tracking-widest text-stone-500">Tinggi</label>
-                                <span class="text-sm font-light text-stone-900 tabular-nums">
-                                    <span id="heightValue">113</span> cm
-                                </span>
+                            <div class="flex items-center justify-between mb-2.5">
+                                <label class="text-xs uppercase tracking-widest text-stone-400">Tinggi</label>
+                                <span class="text-sm font-light text-stone-900 tabular-nums"><span id="heightValue">113</span> cm</span>
                             </div>
-                            <input type="range" id="height" min="113" max="300" step="10" value="113"
-                                   class="w-full cursor-pointer">
+                            <input type="range" id="height" min="113" max="300" step="10" value="113" class="w-full cursor-pointer">
                         </div>
-
-                        <!-- Kedalaman -->
                         <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <label class="text-xs uppercase tracking-widest text-stone-500">Kedalaman</label>
-                                <span class="text-sm font-light text-stone-900 tabular-nums">
-                                    <span id="depthValue">40</span> cm
-                                </span>
+                            <div class="flex items-center justify-between mb-2.5">
+                                <label class="text-xs uppercase tracking-widest text-stone-400">Kedalaman</label>
+                                <span class="text-sm font-light text-stone-900 tabular-nums"><span id="depthValue">40</span> cm</span>
                             </div>
-                            <input type="range" id="depth" min="20" max="100" step="10" value="40"
-                                   class="w-full cursor-pointer">
+                            <input type="range" id="depth" min="20" max="100" step="10" value="40" class="w-full cursor-pointer">
                         </div>
-
                     </div>
                 </section>
 
-                <!-- ── KONFIGURASI KOMPONEN ──────────────── -->
-                <section id="rackLayoutControls" class="py-6 border-b border-stone-200 panel-section" style="animation-delay:120ms">
-                    <p class="text-[0.65rem] tracking-[0.14em] uppercase text-stone-500 mb-5 flex items-center gap-2">
+                <!-- KONFIGURASI -->
+                <section id="rackLayoutControls" class="py-5 border-b border-stone-200">
+                    <p class="text-[0.6rem] tracking-[0.14em] uppercase text-stone-400 mb-4 flex items-center gap-1.5">
                         <span class="w-1 h-1 rounded-full bg-rust inline-block"></span>
                         Konfigurasi Komponen
                     </p>
-                    <div id="layoutGrid" class="grid grid-cols-2 gap-3">
-                        <!-- Injected by custom.js -->
-                    </div>
+                    <div id="layoutGrid" class="grid grid-cols-2 gap-2.5"></div>
                 </section>
 
-                <!-- ── FINISHING ────────────────────────── -->
-                <section class="py-6 border-b border-stone-200 panel-section" style="animation-delay:180ms">
-                    <p class="text-[0.65rem] tracking-[0.14em] uppercase text-stone-500 mb-5 flex items-center gap-2">
+                <!-- FINISHING -->
+                <section class="py-5 border-b border-stone-200">
+                    <p class="text-[0.6rem] tracking-[0.14em] uppercase text-stone-400 mb-4 flex items-center gap-1.5">
                         <span class="w-1 h-1 rounded-full bg-rust inline-block"></span>
                         Finishing
                     </p>
 
-                    <!-- Toggle PVC / HPL -->
-                    <div class="flex mb-4 border border-stone-200">
+                    <div class="flex mb-3 border border-stone-200">
                         <button id="btnPVC" onclick="setFinishingType('pvc')"
-                            class="flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-medium transition-colors bg-stone-900 text-white border-r border-stone-200">
+                            class="flex-1 py-2 text-[0.62rem] tracking-widest uppercase font-medium transition-colors bg-stone-900 text-white border-r border-stone-700">
                             PVC Sheet
                         </button>
                         <button id="btnHPL" onclick="setFinishingType('hpl')"
-                            class="flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-medium transition-colors bg-white text-stone-500 hover:text-stone-900">
+                            class="flex-1 py-2 text-[0.62rem] tracking-widest uppercase font-medium transition-colors bg-white text-stone-500 hover:text-stone-900">
                             HPL Premium
                         </button>
                     </div>
 
-<!-- Opsi Tekstur PVC -->
-<div id="pvcOptions" class="grid grid-cols-3 gap-2">
-    <button onclick="selectTexture('pvc', './models/tekstur/warna putih.jpg', 'Putih', this)" 
-            class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-            <img src="./models/tekstur/warna putih.jpg" class="w-full h-14 object-cover rounded-md"/>
-            <span class="text-[10px] text-gray-500 font-medium">Putih</span>   
-    </button>
-    <button onclick="selectTexture('pvc', './models/tekstur/warna abu.avif', 'Abu', this)" 
-        class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-        <img src="./models/tekstur/warna abu.avif" class="w-full h-14 object-cover rounded-md"/>
-        <span class="text-[10px] text-gray-500 font-medium">Abu</span>
-    </button>
-    <button onclick="selectTexture('pvc', './models/tekstur/summer blue.avif', 'Summer Blue', this)" 
-        class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-        <img src="./models/tekstur/summer blue.avif" class="w-full h-14 object-cover rounded-md"/>
-        <span class="text-[10px] text-gray-500 font-medium">Summer Blue</span>
-    </button>
-    <button onclick="selectTexture('pvc', './models/tekstur/ultramarine.jpg', 'Ultramarine', this)" 
-        class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-        <img src="./models/tekstur/ultramarine.jpg" class="w-full h-14 object-cover rounded-md"/>
-        <span class="text-[10px] text-gray-500 font-medium">Ultramarine</span>
-    </button>
-    <button onclick="selectTexture('pvc', './models/tekstur/kayu03.jpg', 'Motif Kayu', this)" 
-        class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-        <img src="./models/tekstur/kayu03.jpg" class="w-full h-14 object-cover rounded-md"/>
-        <span class="text-[10px] text-gray-500 font-medium">Motif Kayu</span>
-    </button>
-</div>
+                    <div id="pvcOptions" class="grid grid-cols-4 gap-1.5">
+                        <button onclick="selectTexture('pvc','./models/tekstur/warna putih.jpg','Putih',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/warna putih.jpg" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Putih</span>
+                        </button>
+                        <button onclick="selectTexture('pvc','./models/tekstur/warna abu.avif','Abu',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/warna abu.avif" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Abu</span>
+                        </button>
+                        <button onclick="selectTexture('pvc','./models/tekstur/summer blue.avif','Blue',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/summer blue.avif" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Blue</span>
+                        </button>
+                        <button onclick="selectTexture('pvc','./models/tekstur/ultramarine.jpg','Navy',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/ultramarine.jpg" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Navy</span>
+                        </button>
+                        <button onclick="selectTexture('pvc','./models/tekstur/kayu03.jpg','Kayu',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/kayu03.jpg" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Kayu</span>
+                        </button>
+                    </div>
 
-<!-- Opsi Tekstur HPL -->
-<div id="hplOptions" class="grid grid-cols-3 gap-2 hidden">
-    <button onclick="selectTexture('hpl', './models/tekstur/oak_putih.jpg', 'Oak Putih', this)" 
-        class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-        <img src="./models/tekstur/oak_putih.jpg" class="w-full h-14 object-cover rounded-md"/>
-        <span class="text-[10px] text-gray-500 font-medium">Oak Putih</span>
-    </button>
-    <button onclick="selectTexture('hpl', './models/tekstur/oak_abucorak.png', 'Abu Terang', this)" 
-        class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-        <img src="./models/tekstur/oak_abucorak.png" class="w-full h-14 object-cover rounded-md"/>
-        <span class="text-[10px] text-gray-500 font-medium">Abu Terang</span>
-    </button>
-    <button onclick="selectTexture('hpl', './models/tekstur/oak_gelap.png', 'Abu Gelap', this)" 
-        class="texture-btn flex flex-col items-center gap-1 p-1 rounded-lg border-2 border-transparent hover:border-[#e67e22] transition-all">
-        <img src="./models/tekstur/oak_gelap.png" class="w-full h-14 object-cover rounded-md"/>
-        <span class="text-[10px] text-gray-500 font-medium">Abu Gelap</span>
-    </button>
-</div>
-
-<div class="pt-6 panel-section" style="animation-delay:240ms">
-    <div class="flex items-end justify-between mb-5">
-        <div>
-            <p class="text-[0.65rem] tracking-[0.14em] uppercase text-stone-400 mb-1">Estimasi Total</p>
-            <p id="totalPrice" class="text-2xl font-serif font-light text-stone-900">Rp 0</p>
-            <p class="text-[0.65rem] text-stone-400 mt-1">*Harga dapat berubah sesuai kustomisasi</p>
-        </div>
-    </div>
-
-    <button id="btnOrder" 
-        onclick="window.saveAndOrder()" 
-        class="w-full py-3.5 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-widest uppercase transition-colors font-medium">
-        Simpan &amp; Pesan
-    </button>
-
-    <p class="text-xs text-stone-400 mt-4 leading-relaxed">
-        Estimasi pengerjaan 14–21 hari kerja. Konsultasi gratis via WhatsApp.
-    </p>
-</div>
+                    <div id="hplOptions" class="grid grid-cols-4 gap-1.5 hidden">
+                        <button onclick="selectTexture('hpl','./models/tekstur/oak_putih.jpg','Oak Putih',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/oak_putih.jpg" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Oak Putih</span>
+                        </button>
+                        <button onclick="selectTexture('hpl','./models/tekstur/oak_abucorak.png','Abu Terang',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/oak_abucorak.png" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Abu Terang</span>
+                        </button>
+                        <button onclick="selectTexture('hpl','./models/tekstur/oak_gelap.png','Abu Gelap',this)"
+                                class="texture-btn flex flex-col items-center gap-1 p-1 border border-stone-200 hover:border-stone-900 transition-colors bg-stone-50">
+                            <img src="./models/tekstur/oak_gelap.png" class="w-full h-8 object-cover"/>
+                            <span class="text-[0.55rem] uppercase tracking-wider text-stone-500">Abu Gelap</span>
+                        </button>
+                    </div>
+                </section>
 
             </div>
-            <!-- end panel -->
+            <!-- end scroll -->
+
+            <!-- CTA — sticky di bawah panel -->
+            <div class="flex-shrink-0 pt-5 border-t border-stone-200">
+                <div class="flex items-end justify-between mb-4">
+                    <div>
+                        <p class="text-[0.6rem] tracking-[0.14em] uppercase text-stone-400 mb-1">Estimasi Total</p>
+                        <p id="totalPrice" class="font-serif font-light text-3xl text-stone-900">Rp 0</p>
+                        <p class="text-[0.6rem] text-stone-400 mt-0.5">*Dapat berubah sesuai kustomisasi</p>
+                    </div>
+                </div>
+                <button id="btnOrder" onclick="window.saveAndOrder()"
+                    class="w-full py-3.5 bg-stone-900 hover:bg-rust text-white text-[0.68rem] tracking-widest uppercase transition-colors font-medium">
+                    Simpan &amp; Pesan
+                </button>
+                <p class="text-[0.65rem] text-stone-400 mt-3 leading-relaxed">
+                    Estimasi 14–21 hari kerja. Konsultasi gratis via WhatsApp.
+                </p>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // Breadcrumb back link
         async function fetchProductData() {
             const params = new URLSearchParams(window.location.search);
             const slug = params.get('slug');
@@ -391,36 +384,28 @@
             }
         }
 
-        // Finishing type toggle
         function setFinishingType(type) {
             const isPVC = type === 'pvc';
             document.getElementById('pvcOptions').classList.toggle('hidden', !isPVC);
-            document.getElementById('hplOptions').classList.toggle('hidden',  isPVC);
-
-            const active   = 'flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-medium transition-colors bg-stone-900 text-white border-r border-stone-200';
-            const inactive = 'flex-1 py-2.5 text-[0.65rem] tracking-widest uppercase font-medium transition-colors bg-white text-stone-500 hover:text-stone-900';
-
+            document.getElementById('hplOptions').classList.toggle('hidden', isPVC);
+            const active   = 'flex-1 py-2 text-[0.62rem] tracking-widest uppercase font-medium transition-colors bg-stone-900 text-white border-r border-stone-700';
+            const inactive = 'flex-1 py-2 text-[0.62rem] tracking-widest uppercase font-medium transition-colors bg-white text-stone-500 hover:text-stone-900';
             document.getElementById('btnPVC').className = isPVC  ? active   : inactive;
             document.getElementById('btnHPL').className = !isPVC ? active   : inactive;
         }
 
-        // Texture select
         function selectTexture(type, path, name, btn) {
-            // highlight selected
             const containerId = type === 'pvc' ? 'pvcOptions' : 'hplOptions';
             document.querySelectorAll(`#${containerId} .texture-btn`).forEach(b => {
-                b.classList.remove('border-[#e67e22]');
-                b.classList.add('border-transparent');
+                b.classList.remove('active', 'border-stone-900');
+                b.classList.add('border-stone-200');
             });
-            btn.classList.remove('border-transparent');
-            btn.classList.add('border-[#e67e22]');
-            
-            // Simpan nama finishing
+            btn.classList.add('active', 'border-stone-900');
+            btn.classList.remove('border-stone-200');
             localStorage.setItem('selectedFinishingName', `${type.toUpperCase()} - ${name}`);
-            
             if (window.appChangeTexture) window.appChangeTexture(path);
         }
-        // Slider sync
+
         window.addEventListener('DOMContentLoaded', () => {
             fetchProductData();
             [
@@ -435,10 +420,15 @@
                     inp.addEventListener('input', () => { dsp.textContent = inp.value; });
                 }
             });
+
+            // Sembunyikan hint setelah interaksi pertama
+            const hint = document.getElementById('rotate-hint');
+            document.getElementById('canvas-area').addEventListener('pointerdown', () => {
+                if (hint) { hint.style.opacity = '0'; hint.style.transition = 'opacity 0.5s'; setTimeout(() => hint.remove(), 500); }
+            }, { once: true });
         });
     </script>
 
     <script type="module" src="./custom.js"></script>
-
 </body>
 </html>

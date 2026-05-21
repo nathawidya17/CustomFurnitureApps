@@ -641,11 +641,14 @@
             const payJson = await payRes.json();
             if (!payRes.ok) throw new Error(payJson.error || 'Gagal upload bukti bayar');
 
-            document.getElementById('successOrderCode').textContent = `Kode Pesanan: ${createdOrder.orderCode}`;
-            const overlay = document.getElementById('successOverlay');
-            overlay.classList.add('show');
-
-            overlay.onclick = null;
+           const waMsg = `Halo Debbi Meubeul, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
+            const waUrl = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsg)}`;
+            
+            sessionStorage.setItem('successOrderCode', createdOrder.orderCode);
+            sessionStorage.setItem('successWaUrl', waUrl);
+            
+            // Redirect ke halaman sukses!
+            window.location.href = 'success.html';
 
         } catch (err) {
             errEl.textContent = err.message;
