@@ -34,15 +34,6 @@
         .fade-up-3 { animation-delay: 0.25s; opacity: 0; }
         .fade-up-4 { animation-delay: 0.35s; opacity: 0; }
 
-        .step-line::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: calc(100% + 8px);
-            width: calc(100% - 16px);
-            height: 1px;
-            background: #d0ceca;
-        }
-
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: #1a1a18;
@@ -57,11 +48,10 @@
             background: #f8f7f5;
         }
 
-        /* ===== SUCCESS OVERLAY MODAL (FIXED) ===== */
         #successOverlay {
             display: none;
-            position: fixed !important; 
-            inset: 0 !important; 
+            position: fixed !important;
+            inset: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
             background: rgba(26,26,24,0.7) !important;
@@ -70,9 +60,7 @@
             align-items: center !important;
             justify-content: center !important;
         }
-        #successOverlay.show { 
-            display: flex !important; 
-        }
+        #successOverlay.show { display: flex !important; }
 
         @keyframes scaleIn {
             from { opacity: 0; transform: scale(0.9); }
@@ -83,6 +71,7 @@
 </head>
 <body class="bg-white font-sans text-stone-900 min-h-screen">
 
+    <!-- HEADER -->
     <header class="sticky top-0 z-50 bg-white border-b border-stone-200">
         <div class="max-w-[1200px] mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
             <a href="catalog.html" class="font-serif text-2xl font-light tracking-wide text-stone-900">
@@ -92,20 +81,21 @@
         </div>
     </header>
 
+    <!-- STEP INDICATOR -->
     <div class="border-b border-stone-100 bg-stone-50">
         <div class="max-w-[1200px] mx-auto px-6 md:px-10 py-4">
             <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2" id="step1Ind">
+                <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-full bg-stone-900 text-white text-[10px] flex items-center justify-center font-medium">1</div>
                     <span class="text-xs font-medium text-stone-900 tracking-wide hidden sm:block">Ringkasan Pesanan</span>
                 </div>
                 <div class="flex-1 h-px bg-stone-200 max-w-[60px]"></div>
-                <div class="flex items-center gap-2" id="step2Ind">
+                <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-full bg-stone-200 text-stone-500 text-[10px] flex items-center justify-center font-medium" id="step2Circle">2</div>
                     <span class="text-xs font-medium text-stone-400 tracking-wide hidden sm:block" id="step2Label">Data Diri</span>
                 </div>
                 <div class="flex-1 h-px bg-stone-200 max-w-[60px]"></div>
-                <div class="flex items-center gap-2" id="step3Ind">
+                <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-full bg-stone-200 text-stone-500 text-[10px] flex items-center justify-center font-medium" id="step3Circle">3</div>
                     <span class="text-xs font-medium text-stone-400 tracking-wide hidden sm:block" id="step3Label">Pembayaran</span>
                 </div>
@@ -115,6 +105,7 @@
 
     <div class="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
 
+        <!-- ── STEP 1: RINGKASAN ─────────────────────── -->
         <div id="stepSummary">
             <div class="mb-8 fade-up fade-up-1">
                 <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Ringkasan Pesanan</h1>
@@ -123,46 +114,67 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
                 <div class="lg:col-span-3 space-y-6 fade-up fade-up-2">
-                    <div class="border border-stone-200 p-6">
-<div class="flex items-start gap-4 pb-5 border-b border-stone-100">
-    <div class="w-24 h-24 bg-stone-100 flex items-center justify-center flex-shrink-0 overflow-hidden" id="mainImage">
-        <svg class="w-7 h-7 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-        </svg>
-    </div>
-    <div>
-        <p class="text-[0.65rem] tracking-widest uppercase text-stone-400 mb-0.5" id="summProductType">Furnitur</p>
-        <h2 class="font-serif font-light text-xl text-stone-900" id="summProductName">Memuat...</h2>
-        <p class="text-xs text-stone-400 mt-1" id="summFinishing"></p>
-    </div>
-</div>
 
-                        <div class="pt-4 space-y-0" id="summConfigList">
-                            <p class="text-sm text-stone-400 italic">Memuat konfigurasi...</p>
+                    <!-- Produk card dengan preview besar -->
+                    <div class="border border-stone-200 overflow-hidden">
+
+                        <!-- Preview 3D full width -->
+                        <div class="w-full bg-stone-100 relative overflow-hidden" style="aspect-ratio:16/9" id="mainImage">
+                            <div id="imgFallback" class="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                                <svg class="w-12 h-12 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                                <p class="text-xs text-stone-400">Tidak ada preview</p>
+                            </div>
+                            <!-- Badge -->
+                            <div class="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm px-3 py-1 pointer-events-none">
+                                <span class="text-[0.6rem] uppercase tracking-widest text-white/80">Hasil Kustomisasi 3D</span>
+                            </div>
+                        </div>
+
+                        <!-- Info produk -->
+                        <div class="p-5 border-t border-stone-100">
+                            <div class="flex items-start justify-between mb-1">
+                                <div>
+                                    <p class="text-[0.65rem] tracking-widest uppercase text-stone-400 mb-0.5" id="summProductType">Furnitur</p>
+                                    <h2 class="font-serif font-light text-xl text-stone-900" id="summProductName">Memuat...</h2>
+                                    <p class="text-xs text-stone-400 mt-1" id="summFinishing"></p>
+                                </div>
+                            </div>
+
+                            <!-- Konfigurasi -->
+                            <div class="mt-4 pt-4 border-t border-stone-100 space-y-0" id="summConfigList">
+                                <p class="text-sm text-stone-400 italic">Memuat konfigurasi...</p>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Catatan -->
                     <div>
-                        <label class="block text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-2">Catatan Tambahan <span class="font-normal text-stone-400">(Opsional)</span></label>
-                        <textarea id="inputNotes" rows="3" placeholder="Misal: warna yang diinginkan, ukuran khusus, atau permintaan lain..."
+                        <label class="block text-[0.7rem] font-medium tracking-widest uppercase text-stone-500 mb-2">
+                            Catatan Tambahan <span class="font-normal text-stone-300">(Opsional)</span>
+                        </label>
+                        <textarea id="inputNotes" rows="3"
+                            placeholder="Misal: warna yang diinginkan, ukuran khusus, atau permintaan lain..."
                             class="w-full border border-stone-200 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 resize-none transition-colors"></textarea>
                     </div>
                 </div>
 
+                <!-- Sidebar harga -->
                 <div class="lg:col-span-2 fade-up fade-up-3">
                     <div class="border border-stone-200 p-6 sticky top-24">
-                        <h3 class="text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-4">Estimasi Harga</h3>
-                        <div class="space-y-2 pb-4 border-b border-stone-100" id="summPriceBreakdown">
+                        <h3 class="text-[0.65rem] font-medium tracking-widest uppercase text-stone-500 mb-4">Estimasi Harga</h3>
+                        <div class="space-y-2 pb-4 border-b border-stone-100">
                             <div class="flex justify-between text-sm">
-                                <span class="text-stone-500">Harga Dasar</span>
+                                <span class="text-stone-400">Harga Dasar</span>
                                 <span class="text-stone-800" id="summBasePrice">Rp —</span>
                             </div>
                         </div>
                         <div class="flex justify-between items-baseline pt-4 pb-6">
-                            <span class="text-xs tracking-widest uppercase text-stone-500">Total</span>
+                            <span class="text-xs tracking-widest uppercase text-stone-400">Total</span>
                             <span class="font-serif font-light text-2xl text-stone-900" id="summTotalPrice">Rp —</span>
                         </div>
-                        <button onclick="goToStep2()" 
+                        <button onclick="goToStep2()"
                             class="w-full py-3.5 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-[0.15em] uppercase transition-colors font-medium">
                             Lanjut ke Data Diri →
                         </button>
@@ -174,6 +186,7 @@
             </div>
         </div>
 
+        <!-- ── STEP 2: DATA DIRI ─────────────────────── -->
         <div id="stepForm" class="hidden">
             <div class="mb-8">
                 <button onclick="goToStep1()" class="text-xs text-stone-400 hover:text-stone-900 transition-colors flex items-center gap-1.5 mb-4">
@@ -188,23 +201,23 @@
                 <div class="lg:col-span-3 space-y-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-2">Nama Lengkap <span class="text-rust">*</span></label>
+                            <label class="block text-[0.7rem] font-medium tracking-widest uppercase text-stone-500 mb-2">Nama Lengkap <span class="text-rust">*</span></label>
                             <input type="text" id="inputName" placeholder="Nama sesuai identitas"
                                 class="w-full border border-stone-200 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 transition-colors">
                         </div>
                         <div>
-                            <label class="block text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-2">No. WhatsApp <span class="text-rust">*</span></label>
+                            <label class="block text-[0.7rem] font-medium tracking-widest uppercase text-stone-500 mb-2">No. WhatsApp <span class="text-rust">*</span></label>
                             <input type="tel" id="inputPhone" placeholder="08xxxxxxxxxx"
                                 class="w-full border border-stone-200 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 transition-colors">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-2">Email <span class="text-rust">*</span></label>
+                        <label class="block text-[0.7rem] font-medium tracking-widest uppercase text-stone-500 mb-2">Email <span class="text-rust">*</span></label>
                         <input type="email" id="inputEmail" placeholder="email@contoh.com"
                             class="w-full border border-stone-200 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 transition-colors">
                     </div>
                     <div>
-                        <label class="block text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-2">Alamat Pengiriman <span class="text-rust">*</span></label>
+                        <label class="block text-[0.7rem] font-medium tracking-widest uppercase text-stone-500 mb-2">Alamat Pengiriman <span class="text-rust">*</span></label>
                         <textarea id="inputAddress" rows="3" placeholder="Jl. contoh No. 1, Kelurahan, Kecamatan, Kota, Provinsi"
                             class="w-full border border-stone-200 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 resize-none transition-colors"></textarea>
                     </div>
@@ -222,7 +235,7 @@
                         <p class="text-[0.65rem] tracking-widest uppercase text-stone-400 mb-1">Pesanan Anda</p>
                         <p class="font-serif font-light text-lg text-stone-900 mb-3" id="miniSummName">—</p>
                         <div class="flex justify-between items-baseline border-t border-stone-200 pt-3">
-                            <span class="text-xs text-stone-500">Total</span>
+                            <span class="text-xs text-stone-400">Total</span>
                             <span class="font-medium text-stone-900" id="miniSummPrice">Rp —</span>
                         </div>
                     </div>
@@ -230,6 +243,7 @@
             </div>
         </div>
 
+        <!-- ── STEP 3: PEMBAYARAN ────────────────────── -->
         <div id="stepPayment" class="hidden">
             <div class="mb-8">
                 <button onclick="goToStep2()" class="text-xs text-stone-400 hover:text-stone-900 transition-colors flex items-center gap-1.5 mb-4">
@@ -243,37 +257,38 @@
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
                 <div class="lg:col-span-3 space-y-6">
                     <div class="border border-stone-200 p-6">
-                        <h3 class="text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-4">Informasi Rekening</h3>
-                        <div class="space-y-3">
+                        <h3 class="text-[0.65rem] font-medium tracking-widest uppercase text-stone-500 mb-4">Informasi Rekening</h3>
+                        <div class="space-y-0">
                             <div class="flex justify-between items-center py-3 border-b border-stone-100">
-                                <span class="text-sm text-stone-500">Bank</span>
+                                <span class="text-sm text-stone-400">Bank</span>
                                 <span class="text-sm font-medium text-stone-900">Bank BCA</span>
                             </div>
                             <div class="flex justify-between items-center py-3 border-b border-stone-100">
-                                <span class="text-sm text-stone-500">No. Rekening</span>
+                                <span class="text-sm text-stone-400">No. Rekening</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-sm font-medium text-stone-900 font-mono tracking-widest" id="rekNum">1234 5678 90</span>
                                     <button onclick="copyRek()" class="text-[0.65rem] text-stone-400 hover:text-stone-900 border border-stone-200 px-2 py-0.5 transition-colors" id="copyBtn">Salin</button>
                                 </div>
                             </div>
                             <div class="flex justify-between items-center py-3 border-b border-stone-100">
-                                <span class="text-sm text-stone-500">Atas Nama</span>
+                                <span class="text-sm text-stone-400">Atas Nama</span>
                                 <span class="text-sm font-medium text-stone-900">Debbi Meubeul</span>
                             </div>
                             <div class="flex justify-between items-center py-3">
-                                <span class="text-sm text-stone-500">Nominal Transfer</span>
+                                <span class="text-sm text-stone-400">Nominal Transfer</span>
                                 <span class="text-sm font-semibold text-rust" id="payAmount">Rp —</span>
                             </div>
                         </div>
                         <div class="mt-4 bg-stone-50 border border-stone-100 px-4 py-3">
                             <p class="text-xs text-stone-500 leading-relaxed">
-                                Harap transfer sesuai nominal di atas. Pesanan akan diproses setelah pembayaran dikonfirmasi oleh admin (1×24 jam).
+                                Harap transfer sesuai nominal di atas. Pesanan akan diproses setelah pembayaran dikonfirmasi admin (1×24 jam).
                             </p>
                         </div>
                     </div>
 
+                    <!-- Upload bukti -->
                     <div>
-                        <label class="block text-[0.7rem] font-bold tracking-widest uppercase text-stone-600 mb-2">
+                        <label class="block text-[0.7rem] font-medium tracking-widest uppercase text-stone-500 mb-2">
                             Bukti Pembayaran <span class="text-rust">*</span>
                         </label>
                         <div class="upload-zone p-8 text-center cursor-pointer" id="uploadZone" onclick="document.getElementById('proofFile').click()">
@@ -298,7 +313,7 @@
                     <button onclick="submitOrder()" id="btnSubmit"
                         class="w-full py-4 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-[0.15em] uppercase transition-colors font-medium flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Kirim Pesanan & Bukti Bayar
+                        Kirim Pesanan &amp; Bukti Bayar
                     </button>
                 </div>
 
@@ -314,7 +329,7 @@
                             <p class="text-sm text-stone-500" id="payMiniPhone">—</p>
                         </div>
                         <div class="border-t border-stone-200 pt-4 flex justify-between items-baseline">
-                            <span class="text-xs text-stone-500">Total Bayar</span>
+                            <span class="text-xs text-stone-400">Total Bayar</span>
                             <span class="font-serif font-light text-xl text-stone-900" id="payMiniTotal">Rp —</span>
                         </div>
                     </div>
@@ -323,8 +338,8 @@
         </div>
 
     </div>
-    
 
+    <!-- SUCCESS OVERLAY -->
     <div id="successOverlay">
         <div class="success-card bg-white max-w-md w-full mx-4 p-10 text-center shadow-2xl">
             <div class="w-14 h-14 bg-stone-900 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -337,14 +352,12 @@
                 Terima kasih telah memesan. Pesanan Anda sedang menunggu konfirmasi admin.
             </p>
             <p class="text-xs font-mono text-stone-400 mb-6" id="successOrderCode"></p>
-
             <div class="bg-stone-50 border border-stone-100 p-4 text-left mb-6">
                 <p class="text-[0.65rem] tracking-widest uppercase text-stone-400 mb-2">Langkah Selanjutnya</p>
                 <p class="text-sm text-stone-600 leading-relaxed">
                     Konfirmasi pesanan Anda melalui WhatsApp admin agar pesanan segera diproses.
                 </p>
             </div>
-
             <button id="btnWA" onclick="sendToWhatsApp()"
                 class="w-full py-3.5 bg-[#25D366] hover:bg-[#1ebe5c] text-white text-[0.7rem] tracking-[0.15em] uppercase transition-colors font-medium flex items-center justify-center gap-2 mb-3">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -358,26 +371,21 @@
     </div>
 
     <script>
-    const API = 'http://localhost:3001/api';
-    const ADMIN_WA = '6281234567890'; // ganti dengan no WA admin
+    const API      = 'http://localhost:3001/api';
+    const ADMIN_WA = '6281234567890';
 
-    // State global
     let orderData    = {};
     let userData     = {};
     let createdOrder = null;
     let proofFile    = null;
 
-    // Ambil token dari localStorage
     function getToken() { return localStorage.getItem('token') || localStorage.getItem('adminToken'); }
 
-    // Format rupiah
     function formatIDR(n) {
         return new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', minimumFractionDigits:0 }).format(n);
     }
 
-    // =============================================
-    // INIT: baca params dari URL (dari custom.html)
-    // =============================================
+    // ── INIT ──────────────────────────────────────────
     function initFromURL() {
         const params = new URLSearchParams(window.location.search);
 
@@ -395,20 +403,24 @@
             if (rawConfig) orderData.config = JSON.parse(decodeURIComponent(rawConfig));
         } catch(e) {}
 
-        // Ambil screenshot dari sessionStorage
-        const screenshot = sessionStorage.getItem('orderScreenshot');
+        // Screenshot 3D dari sessionStorage
+        const screenshot  = sessionStorage.getItem('orderScreenshot');
+        const mainImageEl = document.getElementById('mainImage');
+        const fallbackEl  = document.getElementById('imgFallback');
+
         if (screenshot) {
-            // Ganti placeholder icon dengan screenshot
-            document.getElementById('mainImage').innerHTML = 
-                `<img src="${screenshot}" class="w-full h-full object-cover" alt="Preview 3D">`;
+            const img = document.createElement('img');
+            img.src       = screenshot;
+            img.className = 'absolute inset-0 w-full h-full object-cover';
+            img.alt       = 'Preview 3D Kustomisasi';
+            mainImageEl.insertBefore(img, mainImageEl.firstChild);
+            if (fallbackEl) fallbackEl.remove();
         }
 
         renderSummary();
     }
 
-    // =============================================
-    // RENDER RINGKASAN PRODUK
-    // =============================================
+    // ── RENDER RINGKASAN ──────────────────────────────
     function renderSummary() {
         document.getElementById('summProductName').textContent = orderData.productName;
         document.getElementById('summProductType').textContent = orderData.productType;
@@ -420,41 +432,38 @@
         document.getElementById('payMiniTotal').textContent    = formatIDR(orderData.totalPrice);
         document.getElementById('payAmount').textContent       = formatIDR(orderData.totalPrice);
 
-        // Render config detail
-        const configList = document.getElementById('summConfigList');
-        const cfg        = orderData.config;
-        const rows       = [];
-
-        // Tampilkan finishing
         const finishingEl = document.getElementById('summFinishing');
-        if (finishingEl) finishingEl.textContent = `Finishing: ${orderData.finishing}`;
+        if (finishingEl && orderData.finishing && orderData.finishing !== '-') {
+            finishingEl.textContent = 'Finishing: ' + orderData.finishing;
+        }
 
-        if (cfg.width)      rows.push(['Lebar',      cfg.width + ' cm']);
-        if (cfg.height)     rows.push(['Tinggi',     cfg.height + ' cm']);
-        if (cfg.depth)      rows.push(['Kedalaman',  cfg.depth + ' cm']);
-        if (cfg.cols)       rows.push(['Kolom',      cfg.cols]);
-        if (cfg.rows)       rows.push(['Baris',      cfg.rows]);
+        const configList = document.getElementById('summConfigList');
+        const cfg  = orderData.config;
+        const rows = [];
+
+        if (cfg.width)    rows.push(['Lebar',      cfg.width + ' cm']);
+        if (cfg.height)   rows.push(['Tinggi',     cfg.height + ' cm']);
+        if (cfg.depth)    rows.push(['Kedalaman',  cfg.depth + ' cm']);
+        if (cfg.cols)     rows.push(['Kolom',      cfg.cols]);
+        if (cfg.rows)     rows.push(['Baris',      cfg.rows]);
         if (cfg.drawer !== undefined) rows.push(['Jumlah Drawer', cfg.drawer]);
-        if (cfg.laci  !== undefined)  rows.push(['Jumlah Laci',   cfg.laci]);
+        if (cfg.laci   !== undefined) rows.push(['Jumlah Laci',   cfg.laci]);
         if (cfg.rodPosition) rows.push(['Posisi Gantungan', labelRod(cfg.rodPosition)]);
-        if (cfg.leftRak !== undefined) rows.push(['Rak Kiri',    cfg.leftRak]);
-        if (cfg.rightRakTop !== undefined) rows.push(['Rak Kanan Atas',   cfg.rightRakTop]);
-        if (cfg.rightRakBottom !== undefined) rows.push(['Rak Kanan Bawah', cfg.rightRakBottom]);
-        if (cfg.kiriMode)   rows.push(['Mode Ruang Kiri', cfg.kiriMode === 'gantungan' ? 'Gantungan Baju' : 'Rak']);
-        if (cfg.kiriRak !== undefined)  rows.push(['Rak Kiri',    cfg.kiriRak]);
-        if (cfg.kananRak !== undefined) rows.push(['Rak Kanan',   cfg.kananRak]);
+        if (cfg.leftRak        !== undefined) rows.push(['Rak Kiri',         cfg.leftRak]);
+        if (cfg.rightRakTop    !== undefined) rows.push(['Rak Kanan Atas',   cfg.rightRakTop]);
+        if (cfg.rightRakBottom !== undefined) rows.push(['Rak Kanan Bawah',  cfg.rightRakBottom]);
+        if (cfg.kiriMode)      rows.push(['Mode Ruang Kiri', cfg.kiriMode === 'gantungan' ? 'Gantungan Baju' : 'Rak']);
+        if (cfg.kiriRak     !== undefined) rows.push(['Rak Kiri',    cfg.kiriRak]);
+        if (cfg.kananRak    !== undefined) rows.push(['Rak Kanan',   cfg.kananRak]);
         if (cfg.kananDrawer !== undefined) rows.push(['Drawer Kanan', cfg.kananDrawer]);
-        if (orderData.finishing && orderData.finishing !== '-') rows.push(['Finishing', orderData.finishing]);
 
-        if (rows.length === 0) {
-            configList.innerHTML = `<p class="text-sm text-stone-400 italic py-2">Konfigurasi standar</p>`;
-        } else {
-            configList.innerHTML = rows.map(([k, v]) => `
+        configList.innerHTML = rows.length === 0
+            ? `<p class="text-sm text-stone-400 italic py-2">Konfigurasi standar</p>`
+            : rows.map(([k, v]) => `
                 <div class="flex justify-between py-2.5 border-b border-stone-100 last:border-0">
                     <span class="text-sm text-stone-400">${k}</span>
                     <span class="text-sm text-stone-800 font-medium">${v}</span>
                 </div>`).join('');
-        }
     }
 
     function labelRod(val) {
@@ -462,16 +471,13 @@
         return map[val] || val;
     }
 
-    // =============================================
-    // NAVIGASI ANTAR STEP
-    // =============================================
+    // ── NAVIGASI STEP ─────────────────────────────────
     function setStep(n) {
         document.getElementById('stepSummary').classList.toggle('hidden', n !== 1);
         document.getElementById('stepForm').classList.toggle('hidden',    n !== 2);
         document.getElementById('stepPayment').classList.toggle('hidden', n !== 3);
 
-        // Update indicator
-        [1,2,3].forEach(i => {
+        [2, 3].forEach(i => {
             const circle = document.getElementById(`step${i}Circle`);
             const label  = document.getElementById(`step${i}Label`);
             if (!circle) return;
@@ -495,7 +501,6 @@
 
     function goToStep2() {
         setStep(2);
-        // Prefill email/nama jika ada dari localStorage
         const savedUser = localStorage.getItem('orderUser');
         if (savedUser) {
             try {
@@ -528,25 +533,19 @@
 
         userData = { name, phone, email, address };
         localStorage.setItem('orderUser', JSON.stringify({ name, email, phone }));
-
         document.getElementById('payMiniUser').textContent  = name;
         document.getElementById('payMiniPhone').textContent = phone;
-
         setStep(3);
     }
 
-    // =============================================
-    // FILE UPLOAD
-    // =============================================
+    // ── FILE UPLOAD ───────────────────────────────────
     function handleFileSelect(e) {
         const file = e.target.files[0];
         if (!file) return;
         proofFile = file;
-
         document.getElementById('uploadPlaceholder').classList.add('hidden');
         document.getElementById('uploadPreview').classList.remove('hidden');
         document.getElementById('previewName').textContent = file.name;
-
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = ev => document.getElementById('previewImg').src = ev.target.result;
@@ -565,7 +564,6 @@
         document.getElementById('uploadPreview').classList.add('hidden');
     }
 
-    // Drag & drop
     const zone = document.getElementById('uploadZone');
     zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
     zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
@@ -575,18 +573,14 @@
         if (file) { document.getElementById('proofFile').files = e.dataTransfer.files; handleFileSelect({ target: { files: [file] } }); }
     });
 
-    // Salin no rek
     function copyRek() {
         navigator.clipboard.writeText('1234567890');
         const btn = document.getElementById('copyBtn');
         btn.textContent = 'Tersalin!';
         setTimeout(() => btn.textContent = 'Salin', 2000);
     }
-    
 
-    // =============================================
-    // SUBMIT ORDER
-    // =============================================
+    // ── SUBMIT ORDER ──────────────────────────────────
     async function submitOrder() {
         const errEl = document.getElementById('payError');
         errEl.classList.add('hidden');
@@ -603,8 +597,6 @@
 
         try {
             const token = getToken();
-
-            // Gabung address ke notes
             const notes = `Nama: ${userData.name}\nHP: ${userData.phone}\nEmail: ${userData.email}\nAlamat: ${userData.address}` +
                           (document.getElementById('inputNotes').value ? `\n\nCatatan: ${document.getElementById('inputNotes').value}` : '');
 
@@ -628,73 +620,51 @@
             if (!orderRes.ok) throw new Error(orderJson.error || 'Gagal membuat pesanan');
             createdOrder = orderJson.order;
 
-            // 2. Upload bukti bayar
             const formData = new FormData();
             formData.append('proof', proofFile);
 
             const payRes = await fetch(`${API}/orders/${createdOrder.id}/payment`, {
-                method: 'POST',
+                method:  'POST',
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-                body:   formData
+                body:    formData
             });
 
             const payJson = await payRes.json();
             if (!payRes.ok) throw new Error(payJson.error || 'Gagal upload bukti bayar');
 
-           const waMsg = `Halo Debbi Meubeul, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
-            const waUrl = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsg)}`;
-            
+            const waMsg = `Halo Debbi Meubeul, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
+
             sessionStorage.setItem('successOrderCode', createdOrder.orderCode);
-            sessionStorage.setItem('successWaUrl', waUrl);
-            
-            // Redirect ke halaman sukses!
+            sessionStorage.setItem('successWaUrl', `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsg)}`);
             window.location.href = 'success.html';
 
         } catch (err) {
             errEl.textContent = err.message;
             errEl.classList.remove('hidden');
-            btn.disabled    = false;
-            btn.innerHTML   = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Kirim Pesanan & Bukti Bayar`;
+            btn.disabled  = false;
+            btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Kirim Pesanan & Bukti Bayar`;
         }
     }
 
-    // =============================================
-    // KIRIM KE WHATSAPP
-    // =============================================
+    // ── WHATSAPP ──────────────────────────────────────
     function sendToWhatsApp() {
         if (!createdOrder) return;
-
         const cfg = orderData.config;
         let cfgText = '';
-        if (cfg.width)      cfgText += `• Lebar: ${cfg.width} cm\n`;
-        if (cfg.height)     cfgText += `• Tinggi: ${cfg.height} cm\n`;
-        if (cfg.depth)      cfgText += `• Kedalaman: ${cfg.depth} cm\n`;
-        if (cfg.cols)       cfgText += `• Kolom: ${cfg.cols}\n`;
-        if (cfg.rows)       cfgText += `• Baris: ${cfg.rows}\n`;
+        if (cfg.width)    cfgText += `• Lebar: ${cfg.width} cm\n`;
+        if (cfg.height)   cfgText += `• Tinggi: ${cfg.height} cm\n`;
+        if (cfg.depth)    cfgText += `• Kedalaman: ${cfg.depth} cm\n`;
+        if (cfg.cols)     cfgText += `• Kolom: ${cfg.cols}\n`;
+        if (cfg.rows)     cfgText += `• Baris: ${cfg.rows}\n`;
         if (cfg.drawer !== undefined) cfgText += `• Drawer: ${cfg.drawer}\n`;
-        if (cfg.laci  !== undefined)  cfgText += `• Laci: ${cfg.laci}\n`;
+        if (cfg.laci   !== undefined) cfgText += `• Laci: ${cfg.laci}\n`;
         if (cfg.rodPosition) cfgText += `• Gantungan: ${labelRod(cfg.rodPosition)}\n`;
         if (orderData.finishing && orderData.finishing !== '-') cfgText += `• Finishing: ${orderData.finishing}\n`;
 
-        const msg = `Halo Debbi Meubeul, saya ingin konfirmasi pesanan:
-
-*Kode Pesanan:* ${createdOrder.orderCode}
-*Produk:* ${orderData.productName}
-*Kustomisasi:*
-${cfgText || '• Standar\n'}
-*Total:* ${formatIDR(orderData.totalPrice)}
-
-*Nama:* ${userData.name}
-*No. HP:* ${userData.phone}
-*Alamat:* ${userData.address}
-
-Bukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
-
-        const url = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
+        const msg = `Halo Debbi Meubeul, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Kustomisasi:*\n${cfgText || '• Standar\n'}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n*Alamat:* ${userData.address}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
+        window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    // Init
     initFromURL();
     </script>
 </body>
