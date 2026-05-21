@@ -46,6 +46,13 @@ model Order {
   paymentProof String?
   notes        String?     @db.Text
   adminNotes   String?     @db.Text
+
+  // Data pelanggan
+  customerName    String?
+  customerPhone   String?
+  customerEmail   String?
+  customerAddress String?  @db.Text
+
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   product      Product     @relation(fields: [productId], references: [id])

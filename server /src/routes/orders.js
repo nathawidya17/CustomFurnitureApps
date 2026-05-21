@@ -34,20 +34,24 @@ const generateOrderCode = () => {
     return `ORD-${ymd}-${rand}`;
 };
 
-// Buat pesanan baru
-router.post('/', authenticate, async (req, res) => {
+router.post('/', async (req, res) => {
     try {
-        const { productName, config, totalPrice, notes } = req.body;
+        const { productName, productId, config, totalPrice, notes, customerName, customerPhone, customerEmail, customerAddress } = req.body;
+        
         const order = await prisma.order.create({
             data: {
-                orderCode:   generateOrderCode(),
-                userId:      req.user.id,
-                productId:   1, // default, bisa dikembangkan
+                orderCode:       generateOrderCode(),
+                userId:          1, // guest default, update jika ada auth
+                productId:       parseInt(productId) || 1,
                 productName,
-                config,
-                totalPrice:  parseInt(totalPrice),
+                config:          typeof config === 'object' ? JSON.stringify(config) : config,
+                totalPrice:      parseInt(totalPrice),
                 notes,
-                status:      'PENDING'
+                status:          'PENDING',
+                customerName,
+                customerPhone,
+                customerEmail,
+                customerAddress
             }
         });
         res.json({ message: 'Pesanan berhasil dibuat', order });
