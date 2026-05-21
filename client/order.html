@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pemesanan — Debbi Meubeul</title>
+    <script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <script>
@@ -82,9 +90,9 @@
     </header>
 
     <!-- STEP INDICATOR -->
-    <div class="border-b border-stone-100 bg-stone-50">
+   <div class="border-b border-stone-100 bg-stone-50">
         <div class="max-w-[1200px] mx-auto px-6 md:px-10 py-4">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center justify-center gap-3">
                 <div class="flex items-center gap-2">
                     <div class="w-6 h-6 rounded-full bg-stone-900 text-white text-[10px] flex items-center justify-center font-medium">1</div>
                     <span class="text-xs font-medium text-stone-900 tracking-wide hidden sm:block">Ringkasan Pesanan</span>
@@ -102,7 +110,6 @@
             </div>
         </div>
     </div>
-
     <div class="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
 
         <!-- ── STEP 1: RINGKASAN ─────────────────────── -->
@@ -393,6 +400,7 @@
             productId:   params.get('productId')   || '1',
             productName: params.get('productName') || 'Produk Furnitur',
             productType: params.get('productType') || 'Furnitur',
+            basePrice:   parseInt(params.get('basePrice')  || params.get('totalPrice') || '0'), // Tangkap harga dasar
             totalPrice:  parseInt(params.get('totalPrice') || '0'),
             finishing:   params.get('finishing')   || 'Putih (Default)',
             config:      {}
@@ -424,7 +432,33 @@
     function renderSummary() {
         document.getElementById('summProductName').textContent = orderData.productName;
         document.getElementById('summProductType').textContent = orderData.productType;
-        document.getElementById('summBasePrice').textContent   = formatIDR(orderData.totalPrice);
+        
+        // --- RENDER RINCIAN HARGA (BREAKDOWN) ---
+        const breakdownEl = document.getElementById('summPriceBreakdown');
+        let breakdownHTML = `
+            <div class="flex justify-between text-sm py-1.5">
+                <span class="text-stone-500">Harga Dasar</span>
+                <span class="text-stone-800 font-medium">${formatIDR(orderData.basePrice)}</span>
+            </div>
+        `;
+
+        // Hitung selisih harga total dan harga dasar
+        const customCost = orderData.totalPrice - orderData.basePrice;
+        
+        // Jika ada biaya tambahan (kustomisasi), tampilkan baris baru
+        if (customCost > 0) {
+            breakdownHTML += `
+                <div class="flex justify-between text-sm py-1.5">
+                    <span class="text-stone-500">Biaya Kustomisasi <span class="text-[0.65rem] text-stone-400 block">(Rak, Laci, dll)</span></span>
+                    <span class="text-stone-800 font-medium">${formatIDR(customCost)}</span>
+                </div>
+            `;
+        }
+        
+        // Terapkan ke HTML
+        breakdownEl.innerHTML = breakdownHTML;
+
+        // Terapkan Total Harga ke semua elemen yang butuh
         document.getElementById('summTotalPrice').textContent  = formatIDR(orderData.totalPrice);
         document.getElementById('miniSummName').textContent    = orderData.productName;
         document.getElementById('miniSummPrice').textContent   = formatIDR(orderData.totalPrice);

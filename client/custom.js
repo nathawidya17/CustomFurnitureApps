@@ -962,6 +962,7 @@ window.appChangeColor = (color) => {
 };
 
 window.appChangeTexture = (texturePath) => {
+    sessionStorage.setItem('lastTexturePath', texturePath); 
     currentTexture = textureLoader.load(texturePath, (tex) => {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
         tex.repeat.set(2, 2);
@@ -1061,11 +1062,15 @@ window.saveAndOrder = () => {
     const params = new URLSearchParams({
         productId:   currentProduct?.id   || '1',
         productName: currentProduct?.name || productType,
+        basePrice:   currentProduct?.basePrice || finalPrice,
         productType: productType,
         totalPrice:  totalPriceRaw,
         finishing:   finishingLabel,
         config:      encodeURIComponent(JSON.stringify(getCurrentConfig()))
     });
+    // Tambah di dalam window.saveAndOrder, sebelum redirect
+    const texPath = sessionStorage.getItem('lastTexturePath') || null;
+    sessionStorage.setItem('orderTexturePath', texPath || '');
 
     window.location.href = `order.html?${params.toString()}`;
 };
