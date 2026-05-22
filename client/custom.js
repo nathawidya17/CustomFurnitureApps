@@ -39,6 +39,7 @@ let lemari2Config = {
     kananDrawer: 1,
 };
 
+
 // ==========================================
 // --- SECTION 2: PRODUCT MODULE - HIRO ---
 // ==========================================
@@ -934,6 +935,8 @@ function setupEventListeners() {
     });
 }
 
+// 3. Fungsi Apply Material (Yang Sudah Disempurnakan)
+// 3. Fungsi Apply Material (Dengan Logika Deteksi Kaca/Gagang)
 function applyMat(obj, isHiro) {
     obj.traverse(n => {
         if (n.isMesh && n.material) {
@@ -942,20 +945,35 @@ function applyMat(obj, isHiro) {
             n.material.side = THREE.DoubleSide;
             n.material.transparent = false;
             n.material.opacity = 1.0;
+            
+            // LOGIKA CERDAS: Cek warna asli GLTF untuk mendeteksi kaca/besi
             const r = n.material.color.r, g = n.material.color.g, b = n.material.color.b;
             const isGrey = (Math.abs(r - g) < 0.05 && Math.abs(g - b) < 0.05 && r < 0.85);
-            const isKnob = (n.name + ' ' + n.material.name).toLowerCase().match(/handle|knob|gagang|kenop|abu|grey|bulat/);
+            const isKnob = (n.name + ' ' + n.material.name).toLowerCase().match(/handle|knob|gagang|kenop|kaca|glass/);
+            
             const forceApply = obj.userData?.type === 'cabinet_drawer' || n.parent?.userData?.type === 'cabinet_drawer';
+            
+            // HANYA TERAPKAN TEKSTUR JIKA BUKAN KACA ATAU GAGANG
             if ((!isGrey && !isKnob) || forceApply) {
-                if (currentTexture) { n.material.map = currentTexture; n.material.color.set('#ffffff'); }
-                else { n.material.map = null; n.material.color.set(currentColor); }
+                if (window.currentTexture) { 
+                    n.material.map = window.currentTexture; 
+                    n.material.color.set('#ffffff'); // Reset ke putih agar warna gambar asli keluar
+                    n.material.roughness = 1.0;
+                } else { 
+                    n.material.map = null; 
+                    n.material.color.set('#ffffff'); 
+                }
             }
-            if (isHiro) { n.material.roughness = 0.5; n.material.metalness = 0.1; }
+            
+            if (isHiro && !isKnob) { 
+                n.material.roughness = 0.5; 
+                n.material.metalness = 0.1; 
+            }
+            
             n.material.needsUpdate = true;
         }
     });
 }
-
 window.appChangeColor = (color) => {
     currentColor = color; currentTexture = null;
     if (rackGroup) applyMat(rackGroup, ['hiro', 'lemari_kabinet', 'lemari'].includes(productType));
@@ -973,41 +991,108 @@ window.appChangeTexture = (texturePath) => {
 
 function updatePriceUI() {
     let finalPrice = basePriceFromDB || 0;
+    let sizeMultiplier = 1; 
+
+    // ==========================================
+    // 1. KALKULASI HARGA KOMPONEN & MULTIPLIER
+    // ==========================================
     if (productType === 'hiro') {
-        const extra = (numDrawer + numLaci) - 3;
-        if (extra > 0) finalPrice += extra * EXTRA_PART_PRICE;
+        const extraDrawer = Math.max(0, numDrawer - 2); 
+        const extraLaci = Math.max(0, numLaci - 1);     
+        finalPrice += (extraDrawer * 40000) + (extraLaci * 25000);
+        sizeMultiplier = Math.max(1, (numDrawer + numLaci) / 3);
+
     } else if (productType === 'hiro_rak2drawer') {
-        const extra = (numRak2Drawer + numRak2Laci) - 4;
-        if (extra > 0) finalPrice += extra * EXTRA_PART_PRICE;
+        const extraDrawer = Math.max(0, numRak2Drawer - 2); 
+        const extraRak = Math.max(0, numRak2Laci - 2);      
+        finalPrice += (extraDrawer * 50000) + (extraRak * 35000);
+        sizeMultiplier = Math.max(1, (numRak2Drawer + numRak2Laci) / 4);
+
     } else if (productType === 'lemari_kabinet') {
-        const extra = (rackCols * rackRows) - 6;
-        if (extra > 0) finalPrice += extra * EXTRA_PART_PRICE;
+        const totalBoxes = rackCols * rackRows;
+        const extra = Math.max(0, totalBoxes - 6); 
+        finalPrice += extra * 80000;
+        sizeMultiplier = Math.max(1, totalBoxes / 6);
+
     } else if (productType === 'rack') {
-        const PRICE_PER_RAK = 25000, PRICE_PER_10CM = 20000;
         const defaultCm = 113, defaultDepthCm = 40;
         const wCm = Math.round(customConfig.width * 100);
         const hCm = Math.round(customConfig.height * 100);
         const dCm = Math.round(customConfig.depth * 100);
+        
         const stepsW = Math.max(0, Math.floor((wCm - defaultCm) / 10));
         const stepsH = Math.max(0, Math.floor((hCm - defaultCm) / 10));
         const stepsD = Math.max(0, Math.floor((dCm - defaultDepthCm) / 10));
-        finalPrice += (stepsW + stepsH + stepsD) * PRICE_PER_10CM;
-        finalPrice += Math.max(0, (rackCols * rackRows) - 9) * PRICE_PER_RAK;
+        
+        finalPrice += (stepsW + stepsH + stepsD) * 20000;
+        
+        const totalRak = rackCols * rackRows;
+        const extraRak = Math.max(0, totalRak - 9); 
+        finalPrice += extraRak * 25000;
+        sizeMultiplier = Math.max(1, totalRak / 9);
+
     } else if (productType === 'lemari') {
-        const extra = (lemariConfig.leftRak + lemariConfig.rightRakTop + lemariConfig.rightRakBottom) - 5;
-        if (extra > 0) finalPrice += extra * 100000;
+        const totalRak = lemariConfig.leftRak + lemariConfig.rightRakTop + lemariConfig.rightRakBottom;
+        const extra = Math.max(0, totalRak - 5);
+        finalPrice += extra * 25000;
+        sizeMultiplier = 3; 
+
     } else if (productType === 'lemari2pintubiasa') {
-        const extra = (lemari2Config.kiriRak + lemari2Config.kananRak + lemari2Config.kananDrawer) - 3;
-        if (extra > 0) finalPrice += extra * 100000;
+        const totalRak = lemari2Config.kiriRak + lemari2Config.kananRak + lemari2Config.kananDrawer;
+        const extra = Math.max(0, totalRak - 5);
+        finalPrice += extra * 25000;
+        sizeMultiplier = 3; 
     }
 
+    // ==========================================
+    // 2. KALKULASI HARGA FINISHING PVC & HPL
+    // ==========================================
+    let baseFinishingPrice = 0;
+    
+    switch(window.currentFinishing) {
+        // TIER 1: PVC Polos (Harga Dasar)
+        case 'Putih':
+        case 'Abu':
+            baseFinishingPrice = 0; 
+            break;
+            
+        // TIER 2: PVC Motif Kayu
+        case 'Kayu Terang':
+        case 'Kayu':
+        case 'Kayu Abu':
+            baseFinishingPrice = 40000; 
+            break;
+            
+        // TIER 3: HPL Standar
+        case 'Oak Putih':
+        case 'Abu Terang':
+        case 'Abu Gelap':
+            baseFinishingPrice = 150000; 
+            break;
+            
+        // TIER 4: HPL Premium
+        case 'Kayu Mewah': // Di HTML nama parameternya 'Kayu Mewah' walau teksnya 'Motif Marmer'
+        
+            baseFinishingPrice = 250000; 
+            break;
+            
+        default:
+            baseFinishingPrice = 0;
+    }
+
+    // Hitung total harga finishing berdasarkan ukuran produk
+    finalPrice += Math.round(baseFinishingPrice * sizeMultiplier);
+
+    // ==========================================
+    // 3. RENDER KE ANTARMUKA (UI)
+    // ==========================================
     const fmt = `Rp${finalPrice.toLocaleString('id-ID')}`;
     const overlayEl = document.getElementById('price-overlay-value');
     if (overlayEl) overlayEl.textContent = fmt;
+    
     const totalEl = document.getElementById('totalPrice');
     if (totalEl) totalEl.textContent = fmt;
 }
-
 function updateUIValues(w, h, d) {
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
     const txt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = Math.round(val); };
@@ -1062,7 +1147,6 @@ window.saveAndOrder = () => {
     const params = new URLSearchParams({
         productId:   currentProduct?.id   || '1',
         productName: currentProduct?.name || productType,
-        basePrice:   currentProduct?.basePrice || finalPrice,
         productType: productType,
         totalPrice:  totalPriceRaw,
         finishing:   finishingLabel,
@@ -1098,5 +1182,41 @@ function getCurrentConfig() {
     };
     return {};
 }
+window.currentFinishing = 'Putih'; 
+window.currentTexture = null; 
 
+// 2. Fungsi dipanggil saat tombol HTML diklik
+window.selectTexture = function(type, path, name, btn) {
+    window.currentFinishing = name; 
+    
+    // Hapus border aktif di semua tombol
+    document.querySelectorAll('.texture-btn').forEach(b => {
+        b.classList.remove('border-stone-900', 'ring-1', 'ring-stone-900');
+        b.classList.add('border-stone-200');
+    });
+    // Tambah border ke tombol yang sedang diklik
+    if (btn) {
+        btn.classList.remove('border-stone-200');
+        btn.classList.add('border-stone-900', 'ring-1', 'ring-stone-900');
+    }
+
+    // SELALU LOAD GAMBAR TEKSTUR DARI HTML (Termasuk Putih & Abu)
+    if (path) {
+        window.currentTexture = textureLoader.load(path, (tex) => {
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(1, 1);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            
+            // PENTING: Gunakan updateDisplay() alih-alih applyMat()
+            // Agar model 3D di-rebuild dari nol dan kaca/gagang tidak ikut ketimpa
+            updateDisplay();
+        });
+    } else {
+        window.currentTexture = null;
+        updateDisplay();
+    }
+
+    // Hitung ulang harga
+    updatePriceUI();
+};
 init();
