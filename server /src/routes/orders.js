@@ -60,12 +60,13 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Upload bukti bayar
-router.post('/:id/payment', authenticate, upload.single('proof'), async (req, res) => {
+// Upload bukti bayar --- (AUTHENTICATE DAN REQ.USER.ID SUDAH DIHAPUS) ---
+router.post('/:id/payment', upload.single('proof'), async (req, res) => {
     try {
         const order = await prisma.order.findFirst({
-            where: { id: parseInt(req.params.id), userId: req.user.id }
+            where: { id: parseInt(req.params.id) } // Cari murni berdasarkan ID order saja
         });
+        
         if (!order) return res.status(404).json({ error: 'Pesanan tidak ditemukan' });
         if (!req.file) return res.status(400).json({ error: 'File tidak ditemukan' });
 
@@ -79,7 +80,7 @@ router.post('/:id/payment', authenticate, upload.single('proof'), async (req, re
     }
 });
 
-// List pesanan user
+// List pesanan user (Tetap pakai authenticate karena ini buat dashboard)
 router.get('/my', authenticate, async (req, res) => {
     try {
         const orders = await prisma.order.findMany({
