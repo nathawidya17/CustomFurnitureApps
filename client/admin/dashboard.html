@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin — Debbi Meubel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Noto Serif Display"', 'Georgia', 'serif'],
+                        sans:  ['"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: { 50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18' },
+                        rust: '#c8602a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; }
+
+        /* Sidebar */
+        #sidebar { width: 240px; flex-shrink: 0; }
+
+        /* Status badges */
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+        .badge-pending         { background:#fef9ed; color:#b45309; border:1px solid #fde68a; }
+        .badge-waiting         { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+        .badge-approved        { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+        .badge-rejected        { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+        .badge-in_production   { background:#faf5ff; color:#7e22ce; border:1px solid #e9d5ff; }
+        .badge-done            { background:#f0fdf4; color:#166534; border:1px solid #86efac; }
+
+        /* Table row hover */
+        tbody tr { transition: background 0.1s; }
+        tbody tr:hover { background: #f8f7f5; }
+
+        /* Nav active */
+        .nav-item.active { background: #1a1a18; color: #fff; }
+        .nav-item { transition: background 0.15s, color 0.15s; }
+
+        /* Stat card */
+        .stat-card { border: 1px solid #e5e3df; padding: 20px 24px; background: #fff; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d0ceca; }
+
+        /* Animate */
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation: fadeUp 0.4s ease both; }
+
+        /* Modal */
+        #orderModal { display:none; }
+        #orderModal.open { display:flex; }
+
+        input:focus, textarea:focus, select:focus { outline:none; border-color:#1a1a18; }
+    </style>
+</head>
+<body class="bg-stone-50 font-sans text-stone-900 min-h-screen">
+
+    <!-- ── AUTH GATE ─────────────────────────────── -->
+    <div id="authGate" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center max-w-sm px-6">
+            <div class="w-12 h-12 border border-stone-200 flex items-center justify-center mx-auto mb-6">
+                <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <h2 class="font-serif font-light text-2xl text-stone-900 mb-2">Akses Terbatas</h2>
+            <p class="text-sm text-stone-400 mb-6 leading-relaxed">Halaman ini hanya dapat diakses oleh admin. Silakan login terlebih dahulu.</p>
+            <a href="login.html" class="inline-block w-full py-3 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-widest uppercase transition-colors text-center">
+                Login Admin
+            </a>
+        </div>
+    </div>
+
+    <!-- ── LAYOUT ─────────────────────────────────── -->
+    <div id="appLayout" class="hidden flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="bg-white border-r border-stone-200 flex flex-col sticky top-0 h-screen overflow-y-auto">
+            <!-- Logo -->
+            <div class="px-6 py-5 border-b border-stone-200 flex-shrink-0">
+                <a href="catalog.html" class="font-serif text-xl font-light tracking-wide text-stone-900">
+                    Debbi <span class="text-rust">Meubel</span>
+                </a>
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mt-0.5">Admin Panel</p>
+            </div>
+
+            <!-- Nav -->
+            <nav class="flex-1 px-3 py-4 space-y-0.5">
+                <button onclick="showSection('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left" id="nav-dashboard">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="showSection('orders')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-50 text-left" id="nav-orders">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Pesanan</span>
+                    <span id="pendingBadge" class="ml-auto bg-rust text-white text-[0.55rem] px-1.5 py-0.5 font-medium hidden">0</span>
+                </button>
+                <button onclick="showSection('products')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-50 text-left" id="nav-products">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <span>Produk</span>
+                </button>
+                <button onclick="showSection('customers')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-50 text-left" id="nav-customers">
+                    <span></span>
+                </button>
+            </nav>
+
+            <!-- User info -->
+            <div class="px-4 py-4 border-t border-stone-200 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-stone-900 flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs font-medium" id="adminInitial">A</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-medium text-stone-800 truncate" id="adminName">Admin</p>
+                        <p class="text-[0.6rem] text-stone-400 truncate" id="adminEmail">—</p>
+                    </div>
+                    <button onclick="logout()" title="Logout" class="text-stone-400 hover:text-stone-900 transition-colors flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto">
+
+            <!-- Top bar -->
+            <div class="bg-white border-b border-stone-200 sticky top-0 z-30">
+                <div class="px-8 h-14 flex items-center justify-between">
+                    <h2 class="text-sm font-medium text-stone-900" id="pageTitle">Dashboard</h2>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-stone-400" id="lastUpdated">—</span>
+                        <button onclick="refreshData()" class="text-stone-400 hover:text-stone-900 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SECTION: DASHBOARD ───────────────── -->
+            <div id="section-dashboard" class="p-8">
+
+                <!-- Greeting -->
+                <div class="mb-8 fade-up">
+                    <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Selamat datang, <span id="greetName">Admin</span>.</h1>
+                    <p class="text-sm text-stone-400" id="greetDate">—</p>
+                </div>
+
+                <!-- Stats grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-up" style="animation-delay:0.05s">
+                    <div class="stat-card">
+                        <p class="text-[0.62rem] tracking-widest uppercase text-stone-400 mb-2">Total Pesanan</p>
+                        <p class="font-serif font-light text-3xl text-stone-900" id="statTotal">—</p>
+                        <p class="text-xs text-stone-400 mt-1" id="statTotalSub">Semua waktu</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-[0.62rem] tracking-widest uppercase text-stone-400 mb-2">Menunggu Konfirmasi</p>
+                        <p class="font-serif font-light text-3xl text-rust" id="statPending">—</p>
+                        <p class="text-xs text-stone-400 mt-1">Perlu tindakan</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-[0.62rem] tracking-widest uppercase text-stone-400 mb-2">Dalam Produksi</p>
+                        <p class="font-serif font-light text-3xl text-stone-900" id="statProduction">—</p>
+                        <p class="text-xs text-stone-400 mt-1">Sedang dikerjakan</p>
+                    </div>
+                    <div class="stat-card">
+                        <p class="text-[0.62rem] tracking-widest uppercase text-stone-400 mb-2">Total Pendapatan</p>
+                        <p class="font-serif font-light text-2xl text-stone-900" id="statRevenue">—</p>
+                        <p class="text-xs text-stone-400 mt-1">Pesanan selesai</p>
+                    </div>
+                </div>
+
+                <!-- Status breakdown -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 fade-up" style="animation-delay:0.1s">
+
+                    <!-- Status distribution -->
+                    <div class="border border-stone-200 bg-white p-6 lg:col-span-2">
+                        <h3 class="text-[0.65rem] tracking-widest uppercase text-stone-400 mb-5">Distribusi Status Pesanan</h3>
+                        <div id="statusBars" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Quick stats -->
+                    <div class="border border-stone-200 bg-white p-6">
+                        <h3 class="text-[0.65rem] tracking-widest uppercase text-stone-400 mb-5">Ringkasan Cepat</h3>
+                        <div class="space-y-4" id="quickStats"></div>
+                    </div>
+                </div>
+
+                <!-- Recent orders -->
+                <div class="border border-stone-200 bg-white fade-up" style="animation-delay:0.15s">
+                    <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
+                        <h3 class="text-[0.65rem] tracking-widest uppercase text-stone-400">Pesanan Terbaru</h3>
+                        <button onclick="showSection('orders')" class="text-xs text-stone-500 hover:text-stone-900 transition-colors">Lihat semua →</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-stone-100">
+                                    <th class="px-6 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Kode</th>
+                                    <th class="px-6 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Produk</th>
+                                    <th class="px-6 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Pelanggan</th>
+                                    <th class="px-6 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Total</th>
+                                    <th class="px-6 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Status</th>
+                                    <th class="px-6 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Tanggal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersBody">
+                                <tr><td colspan="6" class="px-6 py-8 text-center text-sm text-stone-400">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SECTION: ORDERS ──────────────────── -->
+            <div id="section-orders" class="p-8 hidden">
+                <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
+                    <div>
+                        <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Manajemen Pesanan</h1>
+                        <p class="text-sm text-stone-400">Kelola dan perbarui status pesanan pelanggan.</p>
+                    </div>
+                </div>
+
+                <!-- Filter & search -->
+                <div class="flex flex-wrap gap-3 mb-6">
+                    <input type="text" id="orderSearch" placeholder="Cari kode, produk, pelanggan..."
+                        oninput="filterOrders()"
+                        class="border border-stone-200 px-4 py-2 text-sm w-64 bg-white placeholder-stone-300">
+                    <select id="orderStatusFilter" onchange="filterOrders()"
+                        class="border border-stone-200 px-3 py-2 text-sm bg-white text-stone-700">
+                        <option value="">Semua Status</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="WAITING_APPROVAL">Menunggu Persetujuan</option>
+                        <option value="APPROVED">Disetujui</option>
+                        <option value="REJECTED">Ditolak</option>
+                        <option value="IN_PRODUCTION">Dalam Produksi</option>
+                        <option value="DONE">Selesai</option>
+                    </select>
+                </div>
+
+                <div class="border border-stone-200 bg-white overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-stone-200 bg-stone-50">
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Kode Pesanan</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Produk</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Pelanggan</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Total</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Status</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Tanggal</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <tr><td colspan="7" class="px-6 py-8 text-center text-sm text-stone-400">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="px-5 py-3 border-t border-stone-100 flex items-center justify-between">
+                        <p class="text-xs text-stone-400" id="ordersCount">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SECTION: PRODUCTS ────────────────── -->
+            <div id="section-products" class="p-8 hidden">
+                <div class="mb-6">
+                    <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Daftar Produk</h1>
+                    <p class="text-sm text-stone-400">Kelola katalog produk furnitur.</p>
+                </div>
+                <div class="border border-stone-200 bg-white overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-stone-200 bg-stone-50">
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Produk</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Slug</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Harga Dasar</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Ukuran</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Status</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Total Pesanan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <tr><td colspan="6" class="px-6 py-8 text-center text-sm text-stone-400">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SECTION: CUSTOMERS ───────────────── -->
+            <div id="section-customers" class="p-8 hidden">
+                <div class="mb-6">
+                    <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Data Pelanggan</h1>
+                    <p class="text-sm text-stone-400">Daftar pelanggan yang pernah memesan.</p>
+                </div>
+                <div class="border border-stone-200 bg-white overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-stone-200 bg-stone-50">
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Nama</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Email</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">No. HP</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Total Pesanan</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Total Belanja</th>
+                                    <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Bergabung</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody">
+                                <tr><td colspan="6" class="px-6 py-8 text-center text-sm text-stone-400">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ── ORDER DETAIL MODAL ─────────────────────── -->
+    <div id="orderModal" class="fixed inset-0 z-50 items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+
+            <!-- Modal header -->
+            <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-0.5">Detail Pesanan</p>
+                    <h3 class="font-serif font-light text-xl text-stone-900" id="modalOrderCode">—</h3>
+                </div>
+                <button onclick="closeModal()" class="text-stone-400 hover:text-stone-900 transition-colors p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="p-6 flex-1 space-y-6">
+
+                <!-- Status & tanggal -->
+                <div class="flex items-center justify-between">
+                    <span id="modalStatusBadge"></span>
+                    <span class="text-xs text-stone-400" id="modalDate">—</span>
+                </div>
+
+                <!-- Produk -->
+                <div class="border border-stone-100 bg-stone-50 p-4">
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-1">Produk</p>
+                    <p class="font-serif font-light text-lg text-stone-900" id="modalProduct">—</p>
+                    <p class="text-sm font-medium text-rust mt-1" id="modalPrice">—</p>
+                </div>
+
+                <!-- Konfigurasi -->
+                <div>
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-3">Konfigurasi Pesanan</p>
+                    <div id="modalConfig" class="space-y-0 border border-stone-100"></div>
+                </div>
+
+                <!-- Data pelanggan -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-2">Data Pelanggan</p>
+                        <div class="space-y-1">
+                            <p class="text-sm font-medium text-stone-800" id="modalCustName">—</p>
+                            <p class="text-sm text-stone-500" id="modalCustPhone">—</p>
+                            <p class="text-sm text-stone-500" id="modalCustEmail">—</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-2">Alamat Pengiriman</p>
+                        <p class="text-sm text-stone-600 leading-relaxed" id="modalCustAddress">—</p>
+                    </div>
+                </div>
+
+                <!-- Catatan -->
+                <div id="modalNotesWrap" class="hidden">
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-2">Catatan Pelanggan</p>
+                    <p class="text-sm text-stone-600 leading-relaxed bg-stone-50 border border-stone-100 p-3" id="modalNotes">—</p>
+                </div>
+
+                <!-- Bukti bayar -->
+                <div id="modalProofWrap" class="hidden">
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-2">Bukti Pembayaran</p>
+                    <a id="modalProofLink" href="#" target="_blank"
+                        class="inline-flex items-center gap-2 text-sm text-stone-600 border border-stone-200 px-4 py-2 hover:border-stone-900 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        Lihat Bukti Bayar
+                    </a>
+                </div>
+
+                <!-- Update status -->
+                <div class="border-t border-stone-200 pt-5">
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-3">Perbarui Status</p>
+                    <div class="flex gap-3">
+                        <select id="modalStatusSelect" class="flex-1 border border-stone-200 px-3 py-2 text-sm bg-white text-stone-700">
+                            <option value="PENDING">Pending</option>
+                            <option value="WAITING_APPROVAL">Menunggu Persetujuan</option>
+                            <option value="APPROVED">Disetujui</option>
+                            <option value="REJECTED">Ditolak</option>
+                            <option value="IN_PRODUCTION">Dalam Produksi</option>
+                            <option value="DONE">Selesai</option>
+                        </select>
+                        <button onclick="updateOrderStatus()" class="px-5 py-2 bg-stone-900 hover:bg-rust text-white text-xs tracking-widest uppercase transition-colors">
+                            Simpan
+                        </button>
+                    </div>
+                    <textarea id="modalAdminNotes" rows="2" placeholder="Catatan admin (opsional)..."
+                        class="w-full mt-3 border border-stone-200 px-3 py-2 text-sm placeholder-stone-300 resize-none"></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const API = 'http://localhost:3001/api';
+
+    let allOrders   = [];
+    let allProducts = [];
+    let allUsers    = [];
+    let currentOrderId = null;
+
+    // ── AUTH CHECK ────────────────────────────────────
+    function getToken() { return localStorage.getItem('adminToken') || localStorage.getItem('token'); }
+    function getUser()  { try { return JSON.parse(localStorage.getItem('adminUser') || localStorage.getItem('user') || '{}'); } catch(e) { return {}; } }
+
+    function checkAuth() {
+        const token = getToken();
+        const user  = getUser();
+
+        if (!token || user.role !== 'ADMIN') {
+            document.getElementById('authGate').classList.remove('hidden');
+            return false;
+        }
+
+        document.getElementById('appLayout').classList.remove('hidden');
+        document.getElementById('appLayout').classList.add('flex');
+
+        // Populate admin info
+        const name = user.name || 'Admin';
+        document.getElementById('adminName').textContent    = name;
+        document.getElementById('adminEmail').textContent   = user.email || '—';
+        document.getElementById('adminInitial').textContent = name.charAt(0).toUpperCase();
+        document.getElementById('greetName').textContent    = name.split(' ')[0];
+
+        return true;
+    }
+
+    function logout() {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = 'login.html';
+    }
+
+    // ── HELPERS ───────────────────────────────────────
+    function formatIDR(n) {
+        return new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', minimumFractionDigits:0 }).format(n);
+    }
+    function formatDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    }
+    function formatDateTime(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    const STATUS_LABEL = {
+        PENDING:          'Pending',
+        WAITING_APPROVAL: 'Menunggu Persetujuan',
+        APPROVED:         'Disetujui',
+        REJECTED:         'Ditolak',
+        IN_PRODUCTION:    'Dalam Produksi',
+        DONE:             'Selesai',
+    };
+    const STATUS_CLASS = {
+        PENDING:          'badge-pending',
+        WAITING_APPROVAL: 'badge-waiting',
+        APPROVED:         'badge-approved',
+        REJECTED:         'badge-rejected',
+        IN_PRODUCTION:    'badge-in_production',
+        DONE:             'badge-done',
+    };
+    function badge(status) {
+        return `<span class="badge ${STATUS_CLASS[status]||''}">${STATUS_LABEL[status]||status}</span>`;
+    }
+
+    // ── NAVIGATION ────────────────────────────────────
+    const sections = ['dashboard','orders','products','customers'];
+    function showSection(name) {
+        sections.forEach(s => {
+            document.getElementById(`section-${s}`).classList.toggle('hidden', s !== name);
+            const nav = document.getElementById(`nav-${s}`);
+            nav.classList.toggle('active', s === name);
+            nav.classList.toggle('text-stone-600', s !== name);
+            nav.classList.toggle('hover:bg-stone-50', s !== name);
+        });
+        const titles = { dashboard:'Dashboard', orders:'Manajemen Pesanan', products:'Daftar Produk', customers:'Data Pelanggan' };
+        document.getElementById('pageTitle').textContent = titles[name] || name;
+
+        if (name === 'orders')    renderOrdersTable(allOrders);
+        if (name === 'products')  renderProductsTable(allProducts);
+        if (name === 'customers') renderCustomersTable(allUsers);
+    }
+
+    
+async function fetchAll() {
+    const token = getToken();
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    // Stats
+    try {
+        const res = await fetch(`${API}/admin/stats`, { headers });
+        if (res.ok) {
+            const d = await res.json();
+            document.getElementById('statTotal').textContent      = d.total      ?? 0;
+            document.getElementById('statPending').textContent    = (d.pending + d.waiting) ?? 0;
+            document.getElementById('statProduction').textContent = d.inProd     ?? 0;
+            document.getElementById('statRevenue').textContent    = formatIDR(d.revenue ?? 0);
+        }
+    } catch(e) { console.error('Stats error:', e); }
+
+    // Orders
+    try {
+        const res = await fetch(`${API}/admin/orders`, { headers });
+        if (res.ok) {
+            allOrders = await res.json();
+            console.log('Orders:', allOrders.length);
+        } else console.warn('Orders failed:', res.status);
+    } catch(e) { console.error('Orders error:', e); }
+
+    // Products
+    try {
+        const res = await fetch(`${API}/admin/products`, { headers });
+        if (res.ok) {
+            allProducts = await res.json();
+            console.log('Products:', allProducts.length);
+        } else console.warn('Products failed:', res.status);
+    } catch(e) { console.error('Products error:', e); }
+
+    // Users — tidak ada endpoint admin/users di backend, ambil dari orders saja
+    // Build user list dari data orders yang sudah include user
+    allUsers = [];
+    const seenIds = new Set();
+    allOrders.forEach(o => {
+        if (o.user && !seenIds.has(o.userId)) {
+            seenIds.add(o.userId);
+            allUsers.push({
+                id:        o.userId,
+                name:      o.user.name,
+                email:     o.user.email,
+                phone:     o.user.phone || o.customerPhone || '—',
+                role:      'CUSTOMER',
+                createdAt: o.createdAt,
+            });
+        }
+    });
+
+    renderDashboard();
+    document.getElementById('lastUpdated').textContent =
+        'Diperbarui ' + new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+    function refreshData() { fetchAll(); }
+
+    // ── RENDER DASHBOARD ──────────────────────────────
+    function renderDashboard() {
+        // Greeting date
+        document.getElementById('greetDate').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+        const orders = allOrders;
+        const total       = orders.length;
+        const pending     = orders.filter(o => o.status === 'PENDING' || o.status === 'WAITING_APPROVAL').length;
+        const production  = orders.filter(o => o.status === 'IN_PRODUCTION').length;
+        const revenue     = orders.filter(o => o.status === 'DONE').reduce((s,o) => s + (o.totalPrice||0), 0);
+
+        document.getElementById('statTotal').textContent      = total;
+        document.getElementById('statPending').textContent    = pending;
+        document.getElementById('statProduction').textContent = production;
+        document.getElementById('statRevenue').textContent    = formatIDR(revenue);
+
+        // Pending badge di nav
+        if (pending > 0) {
+            document.getElementById('pendingBadge').textContent = pending;
+            document.getElementById('pendingBadge').classList.remove('hidden');
+        }
+
+        // Status bars
+        const statusGroups = {};
+        orders.forEach(o => { statusGroups[o.status] = (statusGroups[o.status]||0) + 1; });
+        const barsEl = document.getElementById('statusBars');
+        barsEl.innerHTML = Object.entries(STATUS_LABEL).map(([key, label]) => {
+            const count = statusGroups[key] || 0;
+            const pct   = total > 0 ? Math.round((count/total)*100) : 0;
+            return `
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-stone-500 w-36 flex-shrink-0">${label}</span>
+                <div class="flex-1 h-1.5 bg-stone-100 overflow-hidden">
+                    <div class="h-full bg-stone-900 transition-all" style="width:${pct}%"></div>
+                </div>
+                <span class="text-xs text-stone-500 w-8 text-right">${count}</span>
+            </div>`;
+        }).join('');
+
+        // Quick stats
+        const thisMonth = new Date(); thisMonth.setDate(1); thisMonth.setHours(0,0,0,0);
+        const ordersThisMonth = orders.filter(o => new Date(o.createdAt) >= thisMonth).length;
+        const avgOrder = total > 0 ? Math.round(orders.reduce((s,o)=>s+(o.totalPrice||0),0)/total) : 0;
+        const doneCount = orders.filter(o=>o.status==='DONE').length;
+
+        document.getElementById('quickStats').innerHTML = `
+            <div class="flex justify-between items-baseline border-b border-stone-100 pb-3">
+                <span class="text-xs text-stone-400">Pesanan bulan ini</span>
+                <span class="text-sm font-medium text-stone-900">${ordersThisMonth}</span>
+            </div>
+            <div class="flex justify-between items-baseline border-b border-stone-100 pb-3">
+                <span class="text-xs text-stone-400">Rata-rata nilai pesanan</span>
+                <span class="text-sm font-medium text-stone-900">${formatIDR(avgOrder)}</span>
+            </div>
+            <div class="flex justify-between items-baseline border-b border-stone-100 pb-3">
+                <span class="text-xs text-stone-400">Pesanan selesai</span>
+                <span class="text-sm font-medium text-stone-900">${doneCount}</span>
+            </div>
+            <div class="flex justify-between items-baseline">
+                <span class="text-xs text-stone-400">Total produk aktif</span>
+                <span class="text-sm font-medium text-stone-900">${allProducts.filter(p=>p.isActive).length}</span>
+            </div>`;
+
+        // Recent orders (5 terbaru)
+        const recent = [...orders].sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)).slice(0,5);
+        document.getElementById('recentOrdersBody').innerHTML = recent.length === 0
+            ? `<tr><td colspan="6" class="px-6 py-8 text-center text-sm text-stone-400">Belum ada pesanan</td></tr>`
+            : recent.map(o => `
+            <tr class="border-b border-stone-100 last:border-0 cursor-pointer" onclick="openModal(${o.id})">
+                <td class="px-6 py-3.5 text-xs font-mono text-stone-600">${o.orderCode||'—'}</td>
+                <td class="px-6 py-3.5 text-sm text-stone-700 max-w-[160px] truncate">${o.productName||'—'}</td>
+                <td class="px-6 py-3.5 text-sm text-stone-500">${o.customerName||o.user?.name||'—'}</td>
+                <td class="px-6 py-3.5 text-sm text-stone-700">${formatIDR(o.totalPrice||0)}</td>
+                <td class="px-6 py-3.5">${badge(o.status)}</td>
+                <td class="px-6 py-3.5 text-xs text-stone-400">${formatDate(o.createdAt)}</td>
+            </tr>`).join('');
+    }
+
+    // ── ORDERS TABLE ──────────────────────────────────
+    function renderOrdersTable(orders) {
+        const tbody = document.getElementById('ordersTableBody');
+        if (!orders.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-stone-400">Tidak ada pesanan ditemukan</td></tr>`;
+            document.getElementById('ordersCount').textContent = '0 pesanan';
+            return;
+        }
+        tbody.innerHTML = orders.map(o => `
+        <tr class="border-b border-stone-100 last:border-0 cursor-pointer" onclick="openModal(${o.id})">
+            <td class="px-5 py-3.5 text-xs font-mono text-stone-600">${o.orderCode||'—'}</td>
+            <td class="px-5 py-3.5 text-sm text-stone-700 max-w-[180px]"><div class="truncate">${o.productName||'—'}</div></td>
+            <td class="px-5 py-3.5">
+                <div class="text-sm text-stone-700">${o.customerName||o.user?.name||'—'}</div>
+                <div class="text-xs text-stone-400">${o.customerPhone||o.user?.phone||'—'}</div>
+            </td>
+            <td class="px-5 py-3.5 text-sm text-stone-700">${formatIDR(o.totalPrice||0)}</td>
+            <td class="px-5 py-3.5">${badge(o.status)}</td>
+            <td class="px-5 py-3.5 text-xs text-stone-400">${formatDate(o.createdAt)}</td>
+            <td class="px-5 py-3.5">
+                <button onclick="event.stopPropagation();openModal(${o.id})" class="text-xs text-stone-500 hover:text-stone-900 border border-stone-200 px-2.5 py-1 hover:border-stone-900 transition-colors">Detail</button>
+            </td>
+        </tr>`).join('');
+        document.getElementById('ordersCount').textContent = `${orders.length} pesanan`;
+    }
+
+function filterOrders() {
+    const q      = document.getElementById('orderSearch').value.toLowerCase();
+    const status = document.getElementById('orderStatusFilter').value;
+    const filtered = allOrders.filter(o => {
+        const name  = (o.customerName || o.user?.name || '').toLowerCase();
+        const phone = (o.customerPhone || o.user?.phone || '');
+        const matchQ = !q ||
+            (o.orderCode||'').toLowerCase().includes(q) ||
+            (o.productName||'').toLowerCase().includes(q) ||
+            name.includes(q) || phone.includes(q);
+        const matchS = !status || o.status === status;
+        return matchQ && matchS;
+    });
+    renderOrdersTable(filtered);
+}
+
+    // ── PRODUCTS TABLE ────────────────────────────────
+    function renderProductsTable(products) {
+        const tbody = document.getElementById('productsTableBody');
+        if (!products.length) {
+            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-sm text-stone-400">Tidak ada produk</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = products.map(p => {
+            const orderCount = allOrders.filter(o => o.productId === p.id).length;
+            return `
+            <tr class="border-b border-stone-100 last:border-0">
+                <td class="px-5 py-3.5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-stone-100 flex-shrink-0 overflow-hidden">
+                            ${p.thumbnail ? `<img src="${p.thumbnail}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center"><svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>`}
+                        </div>
+                        <span class="text-sm font-medium text-stone-800">${p.name}</span>
+                    </div>
+                </td>
+                <td class="px-5 py-3.5 text-xs font-mono text-stone-400">${p.slug}</td>
+                <td class="px-5 py-3.5 text-sm text-stone-700">${formatIDR(p.basePrice||0)}</td>
+                <td class="px-5 py-3.5 text-xs text-stone-500">${p.size||'—'}</td>
+                <td class="px-5 py-3.5">
+                    <span class="badge ${p.isActive ? 'badge-approved' : 'badge-rejected'}">${p.isActive ? 'Aktif' : 'Nonaktif'}</span>
+                </td>
+                <td class="px-5 py-3.5 text-sm text-stone-700">${orderCount}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── CUSTOMERS TABLE ───────────────────────────────
+    function renderCustomersTable(users) {
+        const customers = users.filter(u => u.role === 'CUSTOMER');
+        const tbody = document.getElementById('customersTableBody');
+        if (!customers.length) {
+            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-sm text-stone-400">Tidak ada pelanggan</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = customers.map(u => {
+            const userOrders = allOrders.filter(o => o.userId === u.id);
+            const totalSpend = userOrders.filter(o => o.status==='DONE').reduce((s,o)=>s+(o.totalPrice||0),0);
+            return `
+            <tr class="border-b border-stone-100 last:border-0">
+                <td class="px-5 py-3.5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 bg-stone-200 flex items-center justify-center flex-shrink-0">
+                            <span class="text-xs text-stone-600 font-medium">${(u.name||'?').charAt(0).toUpperCase()}</span>
+                        </div>
+                        <span class="text-sm font-medium text-stone-800">${u.name||'—'}</span>
+                    </div>
+                </td>
+                <td class="px-5 py-3.5 text-sm text-stone-500">${u.email||'—'}</td>
+                <td class="px-5 py-3.5 text-sm text-stone-500">${u.phone||'—'}</td>
+                <td class="px-5 py-3.5 text-sm text-stone-700">${userOrders.length}</td>
+                <td class="px-5 py-3.5 text-sm text-stone-700">${formatIDR(totalSpend)}</td>
+                <td class="px-5 py-3.5 text-xs text-stone-400">${formatDate(u.createdAt)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── ORDER MODAL ───────────────────────────────────
+    function openModal(orderId) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (!order) return;
+        currentOrderId = orderId;
+
+        document.getElementById('modalOrderCode').textContent = order.orderCode || '—';
+        document.getElementById('modalStatusBadge').innerHTML = badge(order.status);
+        document.getElementById('modalDate').textContent      = formatDateTime(order.createdAt);
+        document.getElementById('modalProduct').textContent   = order.productName || '—';
+        document.getElementById('modalPrice').textContent     = formatIDR(order.totalPrice || 0);
+        document.getElementById('modalCustName').textContent    = order.customerName || '—';
+        document.getElementById('modalCustPhone').textContent   = order.customerPhone || '—';
+        document.getElementById('modalCustEmail').textContent   = order.customerEmail || '—';
+        document.getElementById('modalCustAddress').textContent = order.customerAddress || '—';
+        document.getElementById('modalStatusSelect').value      = order.status;
+        document.getElementById('modalAdminNotes').value        = order.adminNotes || '';
+
+        // Config
+        let cfg = {};
+        try { cfg = JSON.parse(order.config || '{}'); } catch(e) {}
+        const cfgKeys = { width:'Lebar', height:'Tinggi', depth:'Kedalaman', cols:'Kolom', rows:'Baris', drawer:'Jumlah Drawer', laci:'Jumlah Laci', rodPosition:'Posisi Gantungan', leftRak:'Rak Kiri', rightRakTop:'Rak Kanan Atas', rightRakBottom:'Rak Kanan Bawah', kiriMode:'Mode Kiri', kiriRak:'Rak Kiri', kananRak:'Rak Kanan', kananDrawer:'Drawer Kanan' };
+        const rows = Object.entries(cfg).filter(([k,v]) => v !== undefined && v !== null && v !== '');
+        document.getElementById('modalConfig').innerHTML = rows.length === 0
+            ? `<p class="text-sm text-stone-400 italic p-3">Konfigurasi standar</p>`
+            : rows.map(([k,v]) => `
+                <div class="flex justify-between px-4 py-2.5 border-b border-stone-100 last:border-0">
+                    <span class="text-xs text-stone-400">${cfgKeys[k]||k}</span>
+                    <span class="text-xs font-medium text-stone-800">${v}${['width','height','depth'].includes(k)?' cm':''}</span>
+                </div>`).join('');
+
+        // Notes
+        const notesWrap = document.getElementById('modalNotesWrap');
+        if (order.notes) { notesWrap.classList.remove('hidden'); document.getElementById('modalNotes').textContent = order.notes; }
+        else notesWrap.classList.add('hidden');
+
+        // Payment proof
+        const proofWrap = document.getElementById('modalProofWrap');
+        if (order.paymentProof) {
+            proofWrap.classList.remove('hidden');
+            document.getElementById('modalProofLink').href = `http://localhost:3001/uploads/${order.paymentProof}`;
+        } else proofWrap.classList.add('hidden');
+
+        document.getElementById('orderModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('orderModal').classList.remove('open');
+        document.body.style.overflow = '';
+        currentOrderId = null;
+    }
+
+async function updateOrderStatus() {
+    if (!currentOrderId) return;
+    const status     = document.getElementById('modalStatusSelect').value;
+    const adminNotes = document.getElementById('modalAdminNotes').value;
+    const token      = getToken();
+
+    try {
+        const res = await fetch(`${API}/admin/orders/${currentOrderId}/status`, {
+            method:  'PATCH',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+            body:    JSON.stringify({ status, adminNotes }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+
+        const idx = allOrders.findIndex(o => o.id === currentOrderId);
+        if (idx !== -1) { allOrders[idx].status = status; allOrders[idx].adminNotes = adminNotes; }
+
+        closeModal();
+        renderDashboard();
+        if (!document.getElementById('section-orders').classList.contains('hidden')) filterOrders();
+    } catch(e) { alert('Gagal memperbarui: ' + e.message); }
+}
+       
+    // Close modal on backdrop click
+    document.getElementById('orderModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ── INIT ──────────────────────────────────────────
+    if (checkAuth()) {
+        fetchAll();
+    }
+    </script>
+</body>
+</html>

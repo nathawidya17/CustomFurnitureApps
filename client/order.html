@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pemesanan — Debbi Meubeul</title>
+    <title>Pemesanan — Debbi Meubel</title>
     <script type="importmap">
 {
     "imports": {
@@ -83,7 +83,7 @@
 <header class="sticky top-0 z-50 bg-white border-b border-stone-200">
         <div class="max-w-[1200px] mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
             <a href="catalog.html" class="font-serif text-2xl font-light tracking-wide text-stone-900">
-                Debbi <span class="text-rust">Meubeul</span>
+                Debbi <span class="text-rust">Meubel</span>
             </a>
             
             <nav class="flex items-center gap-2 text-[0.70minrem] tracking-widest  hidden sm:flex">
@@ -293,7 +293,7 @@
                             </div>
                             <div class="flex justify-between items-center py-3 border-b border-stone-100">
                                 <span class="text-sm text-stone-400">Atas Nama</span>
-                                <span class="text-sm font-medium text-stone-900">Debbi Meubeul</span>
+                                <span class="text-sm font-medium text-stone-900">Debbi Meubel</span>
                             </div>
                             <div class="flex justify-between items-center py-3">
                                 <span class="text-sm text-stone-400">Nominal Transfer</span>
@@ -653,7 +653,7 @@
             const payJson = await payRes.json();
             if (!payRes.ok) throw new Error(payJson.error || 'Gagal upload bukti bayar');
 
-            const waMsg = `Halo Debbi Meubeul, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
+            const waMsg = `Halo Debbi Meubel, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
 
             sessionStorage.setItem('successOrderCode', createdOrder.orderCode);
             sessionStorage.setItem('successWaUrl', `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(waMsg)}`);
@@ -682,7 +682,7 @@
         if (cfg.rodPosition) cfgText += `• Gantungan: ${labelRod(cfg.rodPosition)}\n`;
         if (orderData.finishing && orderData.finishing !== '-') cfgText += `• Finishing: ${orderData.finishing}\n`;
 
-        const msg = `Halo Debbi Meubeul, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Kustomisasi:*\n${cfgText || '• Standar\n'}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n*Alamat:* ${userData.address}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
+        const msg = `Halo Debbi Meubel, saya ingin konfirmasi pesanan:\n\n*Kode Pesanan:* ${createdOrder.orderCode}\n*Produk:* ${orderData.productName}\n*Kustomisasi:*\n${cfgText || '• Standar\n'}\n*Total:* ${formatIDR(orderData.totalPrice)}\n\n*Nama:* ${userData.name}\n*No. HP:* ${userData.phone}\n*Alamat:* ${userData.address}\n\nBukti transfer sudah saya kirimkan. Mohon dikonfirmasi. Terima kasih!`;
         window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
