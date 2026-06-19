@@ -100,4 +100,30 @@ router.patch('/products/:id', authenticate, adminOnly, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// DELETE /products/:id - Menghapus produk (Admin Only)
+router.delete('/products/:id', async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    
+    // Cek dulu apakah produknya beneran ada
+    const product = await prisma.product.findUnique({ 
+        where: { id: productId } 
+    });
+    
+    if (!product) {
+        return res.status(404).json({ error: 'Produk tidak ditemukan' });
+    }
+
+    // Eksekusi hapus pakai Prisma
+    await prisma.product.delete({
+      where: { id: productId }
+    });
+    
+    res.json({ message: 'Produk berhasil dihapus' });
+  } catch (e) { 
+    console.error("Error Delete:", e);
+    res.status(500).json({ error: e.message }); 
+  }
+});
+
 module.exports = router;

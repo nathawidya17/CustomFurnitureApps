@@ -1,7 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-
 const router = express.Router();
+
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // GET /api/products
@@ -35,4 +35,31 @@ router.get('/:slug', async (req, res) => {
     res.status(500).json({ error: e.message }); 
   }
 });
+
+// DELETE /:id - Menghapus produk
+router.delete('/:id', async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    
+    // Cek dulu apakah produknya beneran ada di database
+    const product = await prisma.product.findUnique({ 
+        where: { id: productId } 
+    });
+    
+    if (!product) {
+        return res.status(404).json({ error: 'Produk tidak ditemukan' });
+    }
+
+    // Eksekusi hapus pakai Prisma
+    await prisma.product.delete({
+      where: { id: productId }
+    });
+    
+    res.json({ message: 'Produk berhasil dihapus' });
+  } catch (e) { 
+    console.error("Error Delete:", e);
+    res.status(500).json({ error: e.message }); 
+  }
+});
+
 module.exports = router;
