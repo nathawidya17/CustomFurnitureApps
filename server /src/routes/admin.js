@@ -5,6 +5,18 @@ const { authenticate, adminOnly } = require('../middleware/auth');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// ── HELPER WA FONNTE (PADAT) ──────────────────────────────────
+const formatNoWA = (no) => no?.startsWith('0') ? '62' + no.slice(1) : no;
+const sendWA = async (target, message) => {
+  try {
+    await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: { 'Authorization': 'yWrLHmjXRFpY9UKmkkeh' }, // <-- PASTE TOKEN FONNTE LU DI SINI
+      body: new URLSearchParams({ target, message })
+    });
+  } catch (e) { console.error('Error WA:', e.message); }
+};
+
 // GET /api/admin/stats
 router.get('/stats', authenticate, adminOnly, async (req, res) => {
   try {
@@ -46,17 +58,37 @@ router.get('/orders', authenticate, adminOnly, async (req, res) => {
 // PATCH /api/admin/orders/:id/status
 router.patch('/orders/:id/status', authenticate, adminOnly, async (req, res) => {
   try {
-    const { status, adminNotes } = req.body;
+    const { status } = req.body;
     const valid = ['PENDING','WAITING_APPROVAL','APPROVED','REJECTED','IN_PRODUCTION','DONE'];
-    if (!valid.includes(status))
-      return res.status(400).json({ error: 'Status tidak valid' });
+    if (!valid.includes(status)) return res.status(400).json({ error: 'Status tidak valid' });
 
+    // 1. Update Database
     const order = await prisma.order.update({
       where: { id: parseInt(req.params.id) },
-      data:  { status, adminNotes },
+      data:  { status },
     });
+
+    // 2. Trigger Notifikasi WA (JANGAN DI-AWAIT agar tidak memblokir respon)
+    if (order.customerPhone) {
+      const mapPesan = {
+        WAITING_APPROVAL: 'sedang *DIVERIFIKASI* oleh admin.',
+        APPROVED:         '*DITERIMA* & pembayaran valid.',
+        IN_PRODUCTION:    'sedang *DALAM PROSES PRODUKSI* oleh tukang kayu kami.',
+        DONE:             '*SELESAI* diproduksi & sedang dalam pengiriman!',
+        REJECTED:         '*DITOLAK*. Mohon hubungi admin untuk informasi lebih lanjut.'
+      };
+      const teksStatus = mapPesan[status] || `diperbarui menjadi *${status}*`;
+      const pesan = `Halo Kak *${order.customerName}*,\n\nStatus pesanan Anda (*${order.orderCode}*) ${teksStatus}\n\nTerima kasih — *Debbi Meubel*`;
+      
+      // Panggil tanpa 'await' agar proses API Fonnte berjalan di latar belakang
+      sendWA(formatNoWA(order.customerPhone), pesan).catch(err => console.error('Background WA Error:', err));
+    }
+
+    // 3. Respon sukses ke frontend tetap terkirim walaupun WA gagal
     res.json({ message: 'Status diupdate', order });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { 
+    res.status(500).json({ error: e.message }); 
+  }
 });
 
 // GET /api/admin/products
@@ -104,21 +136,10 @@ router.patch('/products/:id', authenticate, adminOnly, async (req, res) => {
 router.delete('/products/:id', async (req, res) => {
   try {
     const productId = parseInt(req.params.id);
-    
-    // Cek dulu apakah produknya beneran ada
-    const product = await prisma.product.findUnique({ 
-        where: { id: productId } 
-    });
-    
-    if (!product) {
-        return res.status(404).json({ error: 'Produk tidak ditemukan' });
-    }
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) return res.status(404).json({ error: 'Produk tidak ditemukan' });
 
-    // Eksekusi hapus pakai Prisma
-    await prisma.product.delete({
-      where: { id: productId }
-    });
-    
+    await prisma.product.delete({ where: { id: productId } });
     res.json({ message: 'Produk berhasil dihapus' });
   } catch (e) { 
     console.error("Error Delete:", e);

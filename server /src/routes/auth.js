@@ -24,7 +24,12 @@ router.post('/register', async (req, res) => {
             { id: user.id, email: user.email, role: user.role },
             process.env.JWT_SECRET, { expiresIn: '7d' }
         );
-        res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+
+        // ✅ tambahkan phone di response
+        res.status(201).json({
+            token,
+            user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role }
+        });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -39,7 +44,11 @@ router.post('/login', async (req, res) => {
             { id: user.id, email: user.email, role: user.role },
             process.env.JWT_SECRET, { expiresIn: '7d' }
         );
-        res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+
+        res.json({
+            token,
+            user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role }
+        });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

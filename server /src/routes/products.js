@@ -17,7 +17,6 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/products/:slug
-// Ganti bagian GET /api/products/:slug menjadi ini:
 router.get('/:slug', async (req, res) => {
   try {
     // 1. Decode URL (mengubah %20 jadi spasi)
