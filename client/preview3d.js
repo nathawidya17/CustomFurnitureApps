@@ -93,7 +93,7 @@ export async function initPreview(containerId, config) {
 
 function setupScene(container) {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xe8e6e1);
+    scene.background = new THREE.Color(0x3e3c3a);
     scene.fog = new THREE.Fog(0xe8e6e1, 25, 70);
 
     camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -125,18 +125,18 @@ function setupScene(container) {
 }
 
 function setupLights() {
-    scene.add(new THREE.AmbientLight(0xffffff, 2.5));
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xcccccc, 1.2));
-    const key = new THREE.DirectionalLight(0xffffff, 3.0);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.4));
+    const key = new THREE.DirectionalLight(0xffffff, 1.2);
     key.position.set(5, 12, 8); key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.left=-10; key.shadow.camera.right=10;
     key.shadow.camera.top=10;   key.shadow.camera.bottom=-10;
     key.shadow.bias = -0.001;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xffffff, 1.5);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.5);
     fill.position.set(-6, 6, 4); scene.add(fill);
-    const front = new THREE.DirectionalLight(0xffffff, 1.0);
+    const front = new THREE.DirectionalLight(0xffffff, 0.4);
     front.position.set(0, 2, 10); scene.add(front);
 }
 
@@ -145,7 +145,7 @@ function setupEnvironment() {
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(50,50), floorMat);
     floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
 
-    const wallMat = new THREE.MeshStandardMaterial({ color:0xe0ddd8, roughness:1.0 });
+    const wallMat = new THREE.MeshStandardMaterial({ color:0x4a4845, roughness:1.0 });
     const wallBack = new THREE.Mesh(new THREE.PlaneGeometry(50,20), wallMat);
     wallBack.position.set(0,10,-8); scene.add(wallBack);
     const wallLeft = new THREE.Mesh(new THREE.PlaneGeometry(50,20), wallMat.clone());
