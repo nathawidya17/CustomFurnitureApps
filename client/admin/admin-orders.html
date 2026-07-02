@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesanan — Debbi Meubeul Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>tailwind.config={theme:{extend:{fontFamily:{serif:['"Noto Serif Display"','Georgia','serif'],sans:['"DM Sans"','sans-serif']},colors:{stone:{50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18'},rust:'#c8602a'}}}}</script>
+    <style>
+        body{-webkit-font-smoothing:antialiased;}
+        #sidebar{width:240px;flex-shrink:0;}
+        .nav-item.active{background:#1a1a18;color:#fff;}
+        .nav-item{transition:background 0.15s,color 0.15s;}
+        ::-webkit-scrollbar{width:4px;height:4px;} ::-webkit-scrollbar-thumb{background:#d0ceca;}
+        .badge{display:inline-flex;align-items:center;padding:2px 10px;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;}
+        .badge-pending{background:#fef9ed;color:#b45309;border:1px solid #fde68a;}
+        .badge-waiting{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
+        .badge-approved{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+        .badge-rejected{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
+        .badge-in_production{background:#faf5ff;color:#7e22ce;border:1px solid #e9d5ff;}
+        .badge-done{background:#f0fdf4;color:#166534;border:1px solid #86efac;}
+        tbody tr{transition:background 0.1s;} tbody tr:hover{background:#f8f7f5;}
+        #orderModal{display:none;} #orderModal.open{display:flex;}
+        #statusModal{display:none;} #statusModal.open{display:flex;}
+        input:focus,textarea:focus,select:focus{outline:none;border-color:#1a1a18;}
+    </style>
+</head>
+<body class="bg-stone-50 font-sans text-stone-900 min-h-screen">
+
+<div id="authGate" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
+    <div class="text-center max-w-sm px-6">
+        <div class="w-12 h-12 border border-stone-200 flex items-center justify-center mx-auto mb-6">
+            <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h2 class="font-serif font-light text-2xl text-stone-900 mb-2">Akses Terbatas</h2>
+        <p class="text-sm text-stone-400 mb-6">Silakan login terlebih dahulu.</p>
+        <a href="login.html" class="inline-block w-full py-3 bg-stone-900 text-white text-[0.7rem] tracking-widest uppercase text-center">Login Admin</a>
+    </div>
+</div>
+
+<div id="appLayout" class="hidden flex min-h-screen">
+
+    <aside id="sidebar" class="bg-white border-r border-stone-200 flex flex-col sticky top-0 h-screen overflow-y-auto">
+        <div class="px-6 py-5 border-b border-stone-200 flex-shrink-0">
+            <a href="catalog.html" class="font-serif text-xl font-light tracking-wide text-stone-900">Debbi <span class="text-rust">Meubeul</span></a>
+            <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mt-0.5">Admin Panel</p>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+            <a href="dashboard.html" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-50">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="admin-orders.html" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Pesanan</span>
+                <span id="pendingBadge" class="ml-auto bg-rust text-white text-[0.55rem] px-1.5 py-0.5 font-medium hidden">0</span>
+            </a>
+            <a href="admin-products.html" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-50">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <span>Produk</span>
+            </a>
+        </nav>
+        <div class="px-4 py-4 border-t border-stone-200 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-stone-900 flex items-center justify-center"><span class="text-white text-xs font-medium" id="adminInitial">A</span></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-stone-800 truncate" id="adminName">Admin</p>
+                    <p class="text-[0.6rem] text-stone-400 truncate" id="adminEmail">—</p>
+                </div>
+                <button onclick="logout()" class="text-stone-400 hover:text-stone-900 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto">
+        <div class="bg-white border-b border-stone-200 sticky top-0 z-30">
+            <div class="px-8 h-14 flex items-center justify-between">
+                <h2 class="text-sm font-medium text-stone-900">Manajemen Pesanan</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-stone-400" id="lastUpdated">—</span>
+                    <button onclick="fetchOrders()" class="text-stone-400 hover:text-stone-900 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <div class="mb-6">
+                <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Manajemen Pesanan</h1>
+                <p class="text-sm text-stone-400">Kelola dan perbarui status pesanan pelanggan.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-3 mb-6">
+                <input type="text" id="orderSearch" placeholder="Cari kode, produk, pelanggan..."
+                    oninput="filterOrders()"
+                    class="border border-stone-200 px-4 py-2 text-sm w-64 bg-white placeholder-stone-300">
+                <select id="orderStatusFilter" onchange="filterOrders()"
+                    class="border border-stone-200 px-3 py-2 text-sm bg-white text-stone-700">
+                    <option value="">Semua Status</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="WAITING_APPROVAL">Menunggu Persetujuan</option>
+                    <option value="APPROVED">Disetujui</option>
+                    <option value="REJECTED">Ditolak</option>
+                    <option value="IN_PRODUCTION">Dalam Produksi</option>
+                    <option value="DONE">Selesai</option>
+                </select>
+            </div>
+
+            <div class="border border-stone-200 bg-white overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-stone-200 bg-stone-50">
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Kode Pesanan</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Produk</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Pelanggan</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Total</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Status</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Tanggal</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr><td colspan="7" class="px-6 py-8 text-center text-sm text-stone-400">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-stone-100">
+                    <p class="text-xs text-stone-400" id="ordersCount">—</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="orderModal" class="fixed inset-0 z-50 items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+        <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+            <div>
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-0.5">Detail Pesanan</p>
+                <h3 class="font-serif font-light text-xl text-stone-900" id="modalOrderCode">—</h3>
+            </div>
+            <button onclick="closeModal()" class="text-stone-400 hover:text-stone-900 p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="p-6 flex-1 space-y-6">
+            <div class="flex items-center justify-between">
+                <span id="modalStatusBadge"></span>
+                <span class="text-xs text-stone-400" id="modalDate">—</span>
+            </div>
+            <div class="border border-stone-100 bg-stone-50 p-4">
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-1">Produk</p>
+                <p class="font-serif font-light text-lg text-stone-900" id="modalProduct">—</p>
+                <p class="text-sm font-medium text-rust mt-1" id="modalPrice">—</p>
+            </div>
+            <div>
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-3">Konfigurasi Pesanan</p>
+                <div id="modalConfig" class="border border-stone-100"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-2">Data Pelanggan</p>
+                    <p class="text-sm font-medium text-stone-800" id="modalCustName">—</p>
+                    <p class="text-sm text-stone-500" id="modalCustPhone">—</p>
+                    <p class="text-sm text-stone-500" id="modalCustEmail">—</p>
+                </div>
+                <div>
+                    <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-2">Alamat Pengiriman</p>
+                    <p class="text-sm text-stone-600 leading-relaxed" id="modalCustAddress">—</p>
+                </div>
+            </div>
+          
+            <div id="modalProofWrap" class="hidden">
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-2">Bukti Pembayaran</p>
+                <a id="modalProofLink" href="#" target="_blank"
+                    class="inline-flex items-center gap-2 text-sm text-stone-600 border border-stone-200 px-4 py-2 hover:border-stone-900 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    Lihat Bukti Bayar
+                </a>
+            </div>
+
+            <div class="border-t border-stone-200 pt-5">
+                <button onclick="openStatusModalFromDetail()"
+                    class="w-full py-3 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-widest uppercase transition-colors">
+                    Perbarui Status Pesanan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="statusModal" class="fixed inset-0 z-[60] items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md">
+        <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
+            <div>
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-0.5">Perbarui Status</p>
+                <h3 class="font-serif font-light text-xl text-stone-900" id="statusModalOrderCode">—</h3>
+            </div>
+            <button onclick="closeStatusModal()" class="text-stone-400 hover:text-stone-900 p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between bg-stone-50 border border-stone-100 px-4 py-3">
+                <span class="text-xs text-stone-400">Status saat ini</span>
+                <span id="statusModalCurrentBadge"></span>
+            </div>
+
+            <div>
+                <label class="block text-[0.65rem] tracking-widest uppercase text-stone-500 mb-2">Status Baru</label>
+                <select id="statusModalSelect" class="w-full border border-stone-200 px-3 py-2.5 text-sm bg-white text-stone-700">
+                    <option value="PENDING">Pending</option>
+                    <option value="WAITING_APPROVAL">Menunggu Persetujuan</option>
+                    <option value="APPROVED">Disetujui</option>
+                    <option value="REJECTED">Ditolak</option>
+                    <option value="IN_PRODUCTION">Dalam Produksi</option>
+                    <option value="DONE">Selesai</option>
+                </select>
+            </div>
+
+            <div id="statusModalError" class="hidden text-sm px-4 py-3 border border-red-200 bg-red-50 text-red-600"></div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeStatusModal()" class="flex-1 py-3 border border-stone-200 text-stone-600 hover:border-stone-900 hover:text-stone-900 text-xs tracking-widest uppercase transition-colors">
+                    Batal
+                </button>
+                <button onclick="confirmUpdateStatus()" id="statusModalSaveBtn" class="flex-1 py-3 bg-stone-900 hover:bg-rust text-white text-xs tracking-widest uppercase transition-colors">
+                    Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = 'http://localhost:3001/api';
+let allOrders = [], currentOrderId = null;
+
+function getToken() { return localStorage.getItem('adminToken') || localStorage.getItem('token'); }
+function getUser()  { try { return JSON.parse(localStorage.getItem('adminUser') || localStorage.getItem('user') || '{}'); } catch(e) { return {}; } }
+function formatIDR(n) { return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n); }
+function formatDate(d) { return d ? new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function formatDateTime(d) { return d ? new Date(d).toLocaleString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'; }
+const STATUS_LABEL = {PENDING:'Pending',WAITING_APPROVAL:'Menunggu Persetujuan',APPROVED:'Disetujui',REJECTED:'Ditolak',IN_PRODUCTION:'Dalam Produksi',DONE:'Selesai'};
+const STATUS_CLASS  = {PENDING:'badge-pending',WAITING_APPROVAL:'badge-waiting',APPROVED:'badge-approved',REJECTED:'badge-rejected',IN_PRODUCTION:'badge-in_production',DONE:'badge-done'};
+function badge(s) { return `<span class="badge ${STATUS_CLASS[s]||''}">${STATUS_LABEL[s]||s}</span>`; }
+
+function checkAuth() {
+    const token=getToken(), user=getUser();
+    if (!token || user.role !== 'ADMIN') { document.getElementById('authGate').classList.remove('hidden'); return false; }
+    document.getElementById('appLayout').classList.remove('hidden');
+    document.getElementById('appLayout').classList.add('flex');
+    const name=user.name||'Admin';
+    document.getElementById('adminName').textContent    = name;
+    document.getElementById('adminEmail').textContent   = user.email||'—';
+    document.getElementById('adminInitial').textContent = name.charAt(0).toUpperCase();
+    return true;
+}
+
+function logout() { 
+    ['adminToken','adminUser','token','user','userData'].forEach(k=>localStorage.removeItem(k)); 
+    window.location.href='../landingpage.html'; 
+}
+
+async function fetchOrders() {
+    const headers = { 'Authorization': `Bearer ${getToken()}` };
+    try {
+        const res = await fetch(`${API}/admin/orders`, { headers });
+        if (res.ok) { allOrders = await res.json(); }
+    } catch(e) { console.error(e); }
+
+    const pending = allOrders.filter(o=>o.status==='PENDING'||o.status==='WAITING_APPROVAL').length;
+    if (pending > 0) { document.getElementById('pendingBadge').textContent=pending; document.getElementById('pendingBadge').classList.remove('hidden'); }
+
+    filterOrders();
+    document.getElementById('lastUpdated').textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+
+function filterOrders() {
+    const q      = document.getElementById('orderSearch').value.toLowerCase();
+    const status = document.getElementById('orderStatusFilter').value;
+    const filtered = allOrders.filter(o => {
+        const name  = (o.customerName||o.user?.name||'').toLowerCase();
+        const phone = (o.customerPhone||o.user?.phone||'');
+        const matchQ = !q || (o.orderCode||'').toLowerCase().includes(q) || (o.productName||'').toLowerCase().includes(q) || name.includes(q) || phone.includes(q);
+        return matchQ && (!status || o.status === status);
+    });
+    renderTable(filtered);
+}
+
+// ── TABEL: 2 TOMBOL TERPISAH (Detail & Update Status) ───────
+function renderTable(orders) {
+    const tbody = document.getElementById('ordersTableBody');
+    document.getElementById('ordersCount').textContent = `${orders.length} pesanan`;
+    if (!orders.length) { tbody.innerHTML=`<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-stone-400">Tidak ada pesanan</td></tr>`; return; }
+    tbody.innerHTML = orders.map(o => `
+    <tr class="border-b border-stone-100 last:border-0">
+        <td class="px-5 py-3.5 text-xs font-mono text-stone-600">${o.orderCode||'—'}</td>
+        <td class="px-5 py-3.5 text-sm text-stone-700"><div class="truncate max-w-[180px]">${o.productName||'—'}</div></td>
+        <td class="px-5 py-3.5">
+            <div class="text-sm text-stone-700">${o.customerName||o.user?.name||'—'}</div>
+            <div class="text-xs text-stone-400">${o.customerPhone||o.user?.phone||'—'}</div>
+        </td>
+        <td class="px-5 py-3.5 text-sm text-stone-700">${formatIDR(o.totalPrice||0)}</td>
+        <td class="px-5 py-3.5">${badge(o.status)}</td>
+        <td class="px-5 py-3.5 text-xs text-stone-400">${formatDate(o.createdAt)}</td>
+        <td class="px-5 py-3.5">
+            <div class="flex gap-2">
+                <button onclick="openModal(${o.id})" class="text-xs text-stone-500 hover:text-stone-900 border border-stone-200 px-2.5 py-1 hover:border-stone-900 transition-colors">Detail</button>
+                <button onclick="openStatusModal(${o.id})" class="text-xs text-white bg-stone-900 hover:bg-rust px-2.5 py-1 transition-colors">Update Status</button>
+            </div>
+        </td>
+    </tr>`).join('');
+}
+
+// ── MODAL 1: DETAIL (READ ONLY, TIDAK ADA FORM UPDATE) ──────
+function openModal(orderId) {
+    const order = allOrders.find(o=>o.id===orderId); if (!order) return;
+    currentOrderId = orderId;
+    document.getElementById('modalOrderCode').textContent   = order.orderCode||'—';
+    document.getElementById('modalStatusBadge').innerHTML   = badge(order.status);
+    document.getElementById('modalDate').textContent        = formatDateTime(order.createdAt);
+    document.getElementById('modalProduct').textContent     = order.productName||'—';
+    document.getElementById('modalPrice').textContent       = formatIDR(order.totalPrice||0);
+    document.getElementById('modalCustName').textContent    = order.customerName||'—';
+    document.getElementById('modalCustPhone').textContent   = order.customerPhone||'—';
+    document.getElementById('modalCustEmail').textContent   = order.customerEmail||'—';
+    document.getElementById('modalCustAddress').textContent = order.customerAddress||'—';
+
+    let cfg={};
+    try { cfg=JSON.parse(order.config||'{}'); } catch(e){}
+    const cfgKeys={width:'Lebar',height:'Tinggi',depth:'Kedalaman',cols:'Kolom',rows:'Baris',drawer:'Jumlah Drawer',laci:'Jumlah Laci',rodPosition:'Posisi Gantungan',leftRak:'Rak Kiri',rightRakTop:'Rak Kanan Atas',rightRakBottom:'Rak Kanan Bawah',kiriMode:'Mode Kiri',kiriRak:'Rak Kiri',kananRak:'Rak Kanan',kananDrawer:'Drawer Kanan'};
+    const rows=Object.entries(cfg).filter(([k,v])=>v!==undefined&&v!==null&&v!=='');
+    document.getElementById('modalConfig').innerHTML = rows.length===0
+        ? `<p class="text-sm text-stone-400 italic p-3">Konfigurasi standar</p>`
+        : rows.map(([k,v])=>`<div class="flex justify-between px-4 py-2.5 border-b border-stone-100 last:border-0"><span class="text-xs text-stone-400">${cfgKeys[k]||k}</span><span class="text-xs font-medium text-stone-800">${v}${['width','height','depth'].includes(k)?' cm':''}</span></div>`).join('');
+
+    const pw=document.getElementById('modalProofWrap');
+    if(order.paymentProof){pw.classList.remove('hidden');document.getElementById('modalProofLink').href=`http://localhost:3001/uploads/${order.paymentProof}`;}else pw.classList.add('hidden');
+
+    document.getElementById('orderModal').classList.add('open');
+    document.body.style.overflow='hidden';
+}
+function closeModal() { document.getElementById('orderModal').classList.remove('open'); document.body.style.overflow=''; currentOrderId=null; }
+
+// Tombol "Perbarui Status Pesanan" di dalam modal Detail —
+// tutup modal Detail, lalu buka modal Update Status untuk order yang sama
+function openStatusModalFromDetail() {
+    const id = currentOrderId;
+    closeModal();
+    openStatusModal(id);
+}
+
+// ── MODAL 2: UPDATE STATUS (TERPISAH DARI DETAIL) ───────────
+function openStatusModal(orderId) {
+    const order = allOrders.find(o=>o.id===orderId); if (!order) return;
+    currentOrderId = orderId;
+
+    document.getElementById('statusModalOrderCode').textContent    = order.orderCode||'—';
+    document.getElementById('statusModalCurrentBadge').innerHTML   = badge(order.status);
+    document.getElementById('statusModalSelect').value             = order.status;
+    document.getElementById('statusModalError').classList.add('hidden');
+
+    document.getElementById('statusModal').classList.add('open');
+    document.body.style.overflow='hidden';
+}
+function closeStatusModal() {
+    document.getElementById('statusModal').classList.remove('open');
+    document.body.style.overflow='';
+    currentOrderId=null;
+}
+
+async function confirmUpdateStatus() {
+    if (!currentOrderId) return;
+    const status     = document.getElementById('statusModalSelect').value;
+    const errEl      = document.getElementById('statusModalError');
+    const btn        = document.getElementById('statusModalSaveBtn');
+
+    errEl.classList.add('hidden');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+
+    try {
+        const res = await fetch(`${API}/admin/orders/${currentOrderId}/status`, {
+            method:'PATCH',
+            headers:{'Content-Type':'application/json','Authorization':`Bearer ${getToken()}`},
+            body:JSON.stringify({status})
+        });
+        if (!res.ok) throw new Error(await res.text());
+
+        const idx=allOrders.findIndex(o=>o.id===currentOrderId);
+        if(idx!==-1){allOrders[idx].status=status;}
+
+        closeStatusModal();
+        filterOrders();
+    } catch(e) {
+        errEl.textContent = 'Gagal memperbarui status: ' + e.message;
+        errEl.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan';
+    }
+}
+
+document.getElementById('orderModal').addEventListener('click', function(e){ if(e.target===this)closeModal(); });
+document.getElementById('statusModal').addEventListener('click', function(e){ if(e.target===this)closeStatusModal(); });
+
+if (checkAuth()) fetchOrders();
+</script>
+</body>
+</html>

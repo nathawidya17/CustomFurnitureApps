@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesanan Saya — Debbi Meubel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Noto Serif Display"', 'Georgia', 'serif'],
+                        sans:  ['"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: { 50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18' },
+                        rust: '#c8602a',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; }
+        .tab-active { border-bottom-color: #1a1a18; color: #1a1a18; font-weight: 500; }
+    </style>
+    <script src="navbar-auth.js"></script>
+</head>
+<body class="bg-stone-50 font-sans text-stone-900 min-h-screen">
+
+<main class="max-w-[1000px] mx-auto px-6 py-10">
+    <div class="mb-8">
+        <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Daftar Pesanan Saya</h1>
+        <p class="text-sm text-stone-400">Pantau status pembuatan dan pengiriman furnitur kustom Anda.</p>
+    </div>
+
+    <div class="bg-white border border-stone-200 flex overflow-x-auto mb-6 sticky top-16 z-40 shadow-sm">
+        <button onclick="switchTab('ALL', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all tab-active">Semua</button>
+        <button onclick="switchTab('PENDING', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Belum Bayar</button>
+        <button onclick="switchTab('WAITING_APPROVAL', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Verifikasi</button>
+        <button onclick="switchTab('IN_PRODUCTION', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Diproses</button>
+        <button onclick="switchTab('DONE', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Selesai</button>
+    </div>
+
+    <div id="ordersContainer" class="space-y-4">
+        <div class="text-center py-20 text-stone-400 text-sm">
+            <svg class="w-6 h-6 animate-spin mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+            Memuat daftar transaksi...
+        </div>
+    </div>
+</main>
+
+<script>
+const API = 'http://localhost:3001/api';
+let allOrders = [];
+let currentFilter = 'ALL';
+
+function getToken() { return localStorage.getItem('token'); }
+
+// Autentikasi Guard
+if (!getToken()) {
+    window.location.href = 'login.html';
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = 'login.html';
+}
+
+function formatIDR(n) { 
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n); 
+}
+
+function formatDate(dateStr) {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateStr).toLocaleDateString('id-ID', options);
+}
+
+// Mapper Pewarnaan & Label Status Tracking
+function getStatusBadge(status) {
+    const maps = {
+        'PENDING':          { text: 'Menunggu Pembayaran',   css: 'bg-amber-50 text-amber-700 border-amber-200' },
+        'WAITING_APPROVAL': { text: 'Menunggu Verifikasi',   css: 'bg-blue-50 text-blue-700 border-blue-200' },
+        'APPROVED':         { text: 'Pesanan Disetujui',     css: 'bg-stone-100 text-stone-700 border-stone-300' },
+        'IN_PRODUCTION':    { text: 'Dalam Proses Produksi', css: 'bg-rust/10 text-rust border-rust/20' },
+        'DONE':             { text: 'Selesai Dikirim',       css: 'bg-green-50 text-green-700 border-green-200' },
+        'REJECTED':         { text: 'Bukti Bayar Ditolak',   css: 'bg-red-50 text-red-700 border-red-200' }
+    };
+    const config = maps[status] || { text: status, css: 'bg-stone-50 text-stone-600 border-stone-200' };
+    return `<span class="text-[0.7rem] font-medium uppercase tracking-wider px-2.5 py-1 border ${config.css}">${config.text}</span>`;
+}
+
+// Mengurai teks konfigurasi kustomisasi 3D
+function parseConfig(configData) {
+    if (!configData) return '';
+    try {
+        const cfg = typeof configData === 'string' ? JSON.parse(configData) : configData;
+        const keys = [];
+        if (cfg.width)  keys.push(`${cfg.width}cm (L)`);
+        if (cfg.height) keys.push(`${cfg.height}cm (T)`);
+        if (cfg.depth)  keys.push(`${cfg.depth}cm (P)`);
+        if (cfg.cols)   keys.push(`${cfg.cols} Kolom`);
+        if (cfg.rows)   keys.push(`${cfg.rows} Baris`);
+        if (cfg.drawer) keys.push(`${cfg.drawer} Drawer`);
+        if (cfg.laci)   keys.push(`${cfg.laci} Laci`);
+        return keys.join(' • ');
+    } catch (e) { return ''; }
+}
+
+// Mengambil Data dari Endpoint GET /api/orders/my
+async function fetchMyOrders() {
+    try {
+        const res = await fetch(`${API}/orders/my`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        if (!res.ok) throw new Error('Gagal memuat data transaksi');
+        allOrders = await res.json();
+        renderOrders();
+    } catch (err) {
+        document.getElementById('ordersContainer').innerHTML = `
+            <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-4 text-center">
+                ${err.message}. Silakan muat ulang halaman.
+            </div>`;
+    }
+}
+
+// Filter Berdasarkan Tab Aktif
+function switchTab(status, element) {
+    currentFilter = status;
+    document.querySelectorAll('nav + div button').forEach(btn => btn.classList.remove('tab-active'));
+    element.classList.add('tab-active');
+    renderOrders();
+}
+
+// Render List Kartu ke DOM
+function renderOrders() {
+    const container = document.getElementById('ordersContainer');
+    
+    // Klasifikasi filter status logis
+    const filtered = allOrders.filter(order => {
+        if (currentFilter === 'ALL') return true;
+        if (currentFilter === 'IN_PRODUCTION') return order.status === 'APPROVED' || order.status === 'IN_PRODUCTION';
+        return order.status === currentFilter;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="bg-white border border-stone-200 py-16 text-center text-stone-400 text-sm">
+                Tidak ada riwayat pesanan pada kategori ini.
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = filtered.map(order => `
+        <div class="bg-white border border-stone-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div class="px-5 py-3.5 border-b border-stone-100 flex flex-wrap justify-between items-center gap-2 bg-stone-50/50">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-mono font-medium text-stone-900">${order.orderCode}</span>
+                    <span class="text-[0.7rem] text-stone-400">${formatDate(order.createdAt)}</span>
+                </div>
+                <div>${getStatusBadge(order.status)}</div>
+            </div>
+            
+            <div class="p-5 flex gap-4 items-start">
+                <div class="w-16 h-16 bg-stone-100 border border-stone-200 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7  7h10"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-medium text-stone-900 truncate">${order.productName}</h3>
+                    <p class="text-xs text-stone-400 mt-1 truncate">${parseConfig(order.config) || 'Spesifikasi Standar'}</p>
+                    ${order.finishing ? `<p class="text-xs text-stone-500 mt-0.5">Finishing: ${order.finishing}</p>` : ''}
+                    ${order.adminNotes ? `
+                        <div class="mt-2 text-xs bg-amber-50 text-amber-800 p-2.5 border border-amber-100 leading-relaxed">
+                            <strong>Catatan Admin:</strong> ${order.adminNotes}
+                        </div>` : ''}
+                </div>
+            </div>
+            
+            <div class="px-5 py-3.5 border-t border-stone-100 flex items-center justify-between bg-stone-50/20">
+                <div class="text-xs text-stone-400"> Total Pesanan </div>
+                <div class="flex items-center gap-4">
+                    <span class="font-serif font-light text-lg text-rust">${formatIDR(order.totalPrice)}</span>
+                    ${order.status === 'PENDING' ? `
+                        <a href="order.html?productId=${order.productId}&totalPrice=${order.totalPrice}&productName=${encodeURIComponent(order.productName)}" 
+                           class="px-4 py-2 bg-stone-900 hover:bg-rust text-white text-[0.65rem] tracking-wider uppercase font-medium transition-colors">
+                            Bayar Sekarang
+                        </a>` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Jalankan Fungsi Saat Halaman Siap
+fetchMyOrders();
+</script>
+</body>
+</html>

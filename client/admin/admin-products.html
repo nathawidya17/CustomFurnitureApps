@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produk — Debbi Meubeul Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>tailwind.config={theme:{extend:{fontFamily:{serif:['"Noto Serif Display"','Georgia','serif'],sans:['"DM Sans"','sans-serif']},colors:{stone:{50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18'},rust:'#c8602a'}}}}</script>
+    <style>
+        body{-webkit-font-smoothing:antialiased;}
+        #sidebar{width:240px;flex-shrink:0;}
+        .nav-item.active{background:#1a1a18;color:#fff;}
+        .nav-item{transition:background 0.15s,color 0.15s;}
+        ::-webkit-scrollbar{width:4px;height:4px;} ::-webkit-scrollbar-thumb{background:#d0ceca;}
+        .badge{display:inline-flex;align-items:center;padding:2px 10px;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;}
+        .badge-approved{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+        .badge-rejected{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
+        tbody tr{transition:background 0.1s;} tbody tr:hover{background:#f8f7f5;}
+        #editModal{display:none;} #editModal.open{display:flex;}
+        #deleteModal{display:none;} #deleteModal.open{display:flex;}
+        input:focus,textarea:focus,select:focus{outline:none;border-color:#1a1a18;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .fade-up{animation:fadeUp 0.4s ease both;}
+    </style>
+</head>
+<body class="bg-stone-50 font-sans text-stone-900 min-h-screen">
+
+<div id="authGate" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center">
+    <div class="text-center max-w-sm px-6">
+        <div class="w-12 h-12 border border-stone-200 flex items-center justify-center mx-auto mb-6">
+            <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h2 class="font-serif font-light text-2xl text-stone-900 mb-2">Akses Terbatas</h2>
+        <p class="text-sm text-stone-400 mb-6">Silakan login terlebih dahulu.</p>
+        <a href="login.html" class="inline-block w-full py-3 bg-stone-900 text-white text-[0.7rem] tracking-widest uppercase text-center">Login Admin</a>
+    </div>
+</div>
+
+<div id="appLayout" class="hidden flex min-h-screen">
+
+    <aside id="sidebar" class="bg-white border-r border-stone-200 flex flex-col sticky top-0 h-screen overflow-y-auto">
+        <div class="px-6 py-5 border-b border-stone-200 flex-shrink-0">
+            <a href="catalog.html" class="font-serif text-xl font-light tracking-wide text-stone-900">Debbi <span class="text-rust">Meubeul</span></a>
+            <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mt-0.5">Admin Panel</p>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5">
+            <a href="dashboard.html" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-50">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="admin-orders.html" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-50">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Pesanan</span>
+            </a>
+            <a href="admin-products.html" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <span>Produk</span>
+            </a>
+        </nav>
+        <div class="px-4 py-4 border-t border-stone-200 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-stone-900 flex items-center justify-center"><span class="text-white text-xs font-medium" id="adminInitial">A</span></div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-stone-800 truncate" id="adminName">Admin</p>
+                    <p class="text-[0.6rem] text-stone-400 truncate" id="adminEmail">—</p>
+                </div>
+                <button onclick="logout()" class="text-stone-400 hover:text-stone-900 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto">
+        <div class="bg-white border-b border-stone-200 sticky top-0 z-30">
+            <div class="px-8 h-14 flex items-center justify-between">
+                <h2 class="text-sm font-medium text-stone-900">Daftar Produk</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-stone-400" id="lastUpdated">—</span>
+                    <button onclick="fetchProducts()" class="text-stone-400 hover:text-stone-900 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <div class="mb-6">
+                <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Daftar Produk</h1>
+                <p class="text-sm text-stone-400">Edit detail dan aktifkan atau nonaktifkan produk.</p>
+            </div>
+
+            <div class="border border-stone-200 bg-white overflow-hidden fade-up">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-stone-200 bg-stone-50">
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Produk</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Nama Produk</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Harga Dasar</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Ukuran</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Status</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Pesanan</th>
+                                <th class="px-5 py-3 text-left text-[0.6rem] tracking-widest uppercase text-stone-400 font-medium">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <tr><td colspan="7" class="px-6 py-8 text-center text-sm text-stone-400">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-3 border-t border-stone-100">
+                    <p class="text-xs text-stone-400" id="productsCount">—</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div id="editModal" class="fixed inset-0 z-50 items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-lg flex flex-col">
+        <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between flex-shrink-0">
+            <div>
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-0.5">Edit Produk</p>
+                <h3 class="font-serif font-light text-xl text-stone-900" id="editModalTitle">—</h3>
+            </div>
+            <button onclick="closeEditModal()" class="text-stone-400 hover:text-stone-900 p-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <input type="hidden" id="editProductId">
+
+            <div>
+                <label class="block text-[0.65rem] tracking-widest uppercase text-stone-400 mb-2">Foto Produk</label>
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 bg-stone-50 border border-stone-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+                        <img id="editThumbnailPreview" src="" class="w-full h-full object-cover hidden">
+                        <svg id="editThumbnailPlaceholder" class="w-6 h-6 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <input type="file" id="editThumbnailFile" accept="image/*" class="hidden" onchange="handleThumbnailSelect(event)">
+                        <button type="button" onclick="document.getElementById('editThumbnailFile').click()" class="px-3 py-1.5 border border-stone-200 text-xs text-stone-700 hover:bg-stone-50 transition-colors">
+                            Ganti Foto
+                        </button>
+                        <p class="text-[0.6rem] text-stone-400 mt-1.5">Format JPG, PNG (Maks. 2MB)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[0.65rem] tracking-widest uppercase text-stone-400 mb-1.5">Nama Produk</label>
+                <input type="text" id="editName" class="w-full border border-stone-200 px-3 py-2.5 text-sm text-stone-800">
+            </div>
+            <div>
+                <label class="block text-[0.65rem] tracking-widest uppercase text-stone-400 mb-1.5">Harga Dasar (Rp)</label>
+                <input type="number" id="editBasePrice" class="w-full border border-stone-200 px-3 py-2.5 text-sm text-stone-800">
+            </div>
+            <div>
+                <label class="block text-[0.65rem] tracking-widest uppercase text-stone-400 mb-1.5">Ukuran</label>
+                <input type="text" id="editSize" placeholder="cth: 113x40x113 cm" class="w-full border border-stone-200 px-3 py-2.5 text-sm text-stone-800 placeholder-stone-300">
+            </div>
+            <div>
+                <label class="block text-[0.65rem] tracking-widest uppercase text-stone-400 mb-1.5">Deskripsi</label>
+                <textarea id="editDescription" rows="3" class="w-full border border-stone-200 px-3 py-2.5 text-sm text-stone-800 resize-none"></textarea>
+            </div>
+            
+            <div class="flex items-center gap-3 pt-1">
+                <label class="text-[0.65rem] tracking-widest uppercase text-stone-400">Status Aktif</label>
+                <button id="editIsActiveBtn" onclick="toggleIsActive()"
+                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors bg-stone-200" role="switch">
+                    <span id="editIsActiveThumb" class="inline-block h-3.5 w-3.5 translate-x-0.5 rounded-full bg-white transition-transform shadow"></span>
+                </button>
+                <span id="editIsActiveLabel" class="text-xs text-stone-500">Nonaktif</span>
+            </div>
+
+            <div id="editError" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2"></div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="saveProduct()" id="btnSaveProduct" class="flex-1 py-3 bg-stone-900 hover:bg-rust text-white text-xs tracking-widest uppercase transition-colors">Simpan Perubahan</button>
+                <button onclick="closeEditModal()" class="px-5 py-3 border border-stone-200 text-stone-600 text-xs tracking-widest uppercase hover:bg-stone-50 transition-colors">Batal</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="fixed inset-0 z-50 items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-sm p-8 text-center">
+        <div class="w-12 h-12 bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </div>
+        <h3 class="font-serif font-light text-xl text-stone-900 mb-2">Hapus Produk?</h3>
+        <p class="text-sm text-stone-400 mb-1">Produk <strong id="deleteProductName" class="text-stone-700"></strong> akan dihapus permanen.</p>
+        <p class="text-xs text-stone-400 mb-6">Tindakan ini tidak dapat dibatalkan.</p>
+        <div class="flex gap-3">
+            <button onclick="confirmDelete()" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white text-xs tracking-widest uppercase transition-colors">Hapus</button>
+            <button onclick="closeDeleteModal()" class="flex-1 py-3 border border-stone-200 text-stone-600 text-xs tracking-widest uppercase hover:bg-stone-50 transition-colors">Batal</button>
+        </div>
+    </div>
+</div>
+<div id="toast" class="fixed bottom-6 right-6 z-[9999] transform transition-all duration-300 translate-y-10 opacity-0 hidden">
+    <div class="bg-stone-900 text-white px-5 py-3 text-sm flex items-center gap-3 shadow-xl border border-stone-700">
+        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span id="toastMessage">Pesan sukses</span>
+    </div>
+</div>
+
+<script>
+// Fungsi untuk memunculkan Toast
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMessage').textContent = message;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
+    setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+    }, 3000);
+}
+</script>
+<script>
+const API = 'http://localhost:3001/api';
+let allProducts = [], allOrders = [], deleteTargetId = null, editIsActive = true;
+let newThumbnailFile = null; // Menyimpan file foto baru
+
+function getToken() { return localStorage.getItem('adminToken') || localStorage.getItem('token'); }
+function getUser()  { try { return JSON.parse(localStorage.getItem('adminUser') || localStorage.getItem('user') || '{}'); } catch(e) { return {}; } }
+function formatIDR(n) { return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n); }
+
+function checkAuth() {
+    const token=getToken(), user=getUser();
+    if (!token || user.role!=='ADMIN') { document.getElementById('authGate').classList.remove('hidden'); return false; }
+    document.getElementById('appLayout').classList.remove('hidden');
+    document.getElementById('appLayout').classList.add('flex');
+    const name=user.name||'Admin';
+    document.getElementById('adminName').textContent    = name;
+    document.getElementById('adminEmail').textContent   = user.email||'—';
+    document.getElementById('adminInitial').textContent = name.charAt(0).toUpperCase();
+    return true;
+}
+
+function logout() { 
+    ['adminToken','adminUser','token','user','userData'].forEach(k=>localStorage.removeItem(k)); 
+    window.location.href='../landingpage.html'; 
+}
+
+async function fetchProducts() {
+    const headers = { 'Authorization': `Bearer ${getToken()}` };
+    try {
+        const [pRes, oRes] = await Promise.all([
+            fetch(`${API}/admin/products`, { headers }),
+            fetch(`${API}/admin/orders`, { headers }),
+        ]);
+        if (pRes.ok) allProducts = await pRes.json();
+        if (oRes.ok) allOrders   = await oRes.json();
+    } catch(e) { console.error(e); }
+    renderTable();
+    document.getElementById('lastUpdated').textContent = 'Diperbarui ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderTable() {
+    const tbody = document.getElementById('productsTableBody');
+    document.getElementById('productsCount').textContent = `${allProducts.length} produk`;
+    if (!allProducts.length) { tbody.innerHTML=`<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-stone-400">Tidak ada produk</td></tr>`; return; }
+    tbody.innerHTML = allProducts.map(p => {
+        const orderCount = allOrders.filter(o=>o.productId===p.id).length;
+        return `
+        <tr class="border-b border-stone-100 last:border-0">
+            <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-stone-100 flex-shrink-0 overflow-hidden">
+                        ${p.thumbnail
+    ? `<img src="${p.thumbnail.startsWith('http') ? p.thumbnail : 'http://localhost:3001/uploads/' + p.thumbnail.replace('uploads/', '')}" class="w-full h-full object-cover" onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><span class=\\'text-[0.5rem] text-red-400 font-bold uppercase\\'>Error</span></div>'">`
+    : `<div class="w-full h-full flex items-center justify-center"><svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>`}
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-stone-800">${p.name}</p>
+                        ${p.description ? `<p class="text-xs text-stone-400 mt-0.5 max-w-[200px] truncate">${p.description}</p>` : ''}
+                    </div>
+                </div>
+            </td>
+            <td class="px-5 py-3.5 text-xs font-mono text-stone-400">${p.slug}</td>
+            <td class="px-5 py-3.5 text-sm text-stone-700">${formatIDR(p.basePrice||0)}</td>
+            <td class="px-5 py-3.5 text-xs text-stone-500">${p.size||'—'}</td>
+            <td class="px-5 py-3.5">
+                <span class="badge ${p.isActive?'badge-approved':'badge-rejected'}">${p.isActive?'Aktif':'Nonaktif'}</span>
+            </td>
+            <td class="px-5 py-3.5 text-sm text-stone-700">${orderCount}</td>
+            <td class="px-5 py-3.5">
+                <div class="flex items-center gap-2">
+                    <button onclick="openEditModal(${p.id})" class="text-xs text-stone-500 hover:text-stone-900 border border-stone-200 px-2.5 py-1 hover:border-stone-900 transition-colors">Edit</button>
+                    <button onclick="openDeleteModal(${p.id},'${p.name.replace(/'/g,"\\\'")}')" class="text-xs text-red-400 hover:text-red-600 border border-red-200 px-2.5 py-1 hover:border-red-400 transition-colors">Hapus</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ── EDIT MODAL & FOTO ────────────────────────────────────────
+function handleThumbnailSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    newThumbnailFile = file;
+    
+    // Tampilkan preview gambar
+    const reader = new FileReader();
+    reader.onload = ev => {
+        document.getElementById('editThumbnailPreview').src = ev.target.result;
+        document.getElementById('editThumbnailPreview').classList.remove('hidden');
+        document.getElementById('editThumbnailPlaceholder').classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+function openEditModal(productId) {
+    const p = allProducts.find(p=>p.id===productId); if (!p) return;
+    document.getElementById('editProductId').value      = p.id;
+    document.getElementById('editModalTitle').textContent = p.name;
+    document.getElementById('editName').value           = p.name || '';
+    document.getElementById('editBasePrice').value      = p.basePrice || '';
+    document.getElementById('editSize').value           = p.size || '';
+    document.getElementById('editDescription').value    = p.description || '';
+    
+    // Reset file input & Load existing preview
+    newThumbnailFile = null;
+    document.getElementById('editThumbnailFile').value  = '';
+    const imgPreview = document.getElementById('editThumbnailPreview');
+    const placeholder = document.getElementById('editThumbnailPlaceholder');
+    
+    if (p.thumbnail) {
+        imgPreview.src = p.thumbnail.startsWith('http') ? p.thumbnail : 'http://localhost:3001/uploads/' + p.thumbnail.replace('uploads/', '');
+        imgPreview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+    } else {
+        imgPreview.src = '';
+        imgPreview.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+    }
+
+    document.getElementById('editError').classList.add('hidden');
+    editIsActive = p.isActive;
+    updateToggleUI();
+    document.getElementById('editModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeEditModal() { document.getElementById('editModal').classList.remove('open'); document.body.style.overflow=''; }
+
+function toggleIsActive() {
+    editIsActive = !editIsActive;
+    updateToggleUI();
+}
+function updateToggleUI() {
+    const btn   = document.getElementById('editIsActiveBtn');
+    const thumb = document.getElementById('editIsActiveThumb');
+    const label = document.getElementById('editIsActiveLabel');
+    if (editIsActive) {
+        btn.classList.replace('bg-stone-200','bg-stone-900');
+        thumb.classList.replace('translate-x-0.5','translate-x-5');
+        label.textContent = 'Aktif';
+    } else {
+        btn.classList.replace('bg-stone-900','bg-stone-200');
+        thumb.classList.replace('translate-x-5','translate-x-0.5');
+        label.textContent = 'Nonaktif';
+    }
+}
+
+async function saveProduct() {
+    const id          = document.getElementById('editProductId').value;
+    const name        = document.getElementById('editName').value.trim();
+    const basePrice   = document.getElementById('editBasePrice').value;
+    const size        = document.getElementById('editSize').value.trim();
+    const description = document.getElementById('editDescription').value.trim();
+    const errEl       = document.getElementById('editError');
+    const btnSave     = document.getElementById('btnSaveProduct');
+
+    if (!name || !basePrice) { errEl.textContent='Nama dan harga wajib diisi.'; errEl.classList.remove('hidden'); return; }
+    errEl.classList.add('hidden');
+
+    btnSave.disabled = true;
+    btnSave.textContent = 'Menyimpan...';
+
+    // Karena sekarang upload file, kita kirim pakai FormData (bukan JSON)
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('basePrice', parseInt(basePrice));
+    formData.append('size', size);
+    formData.append('description', description);
+    formData.append('isActive', editIsActive);
+    if (newThumbnailFile) {
+        formData.append('thumbnail', newThumbnailFile);
+    }
+
+    try {
+        const res = await fetch(`${API}/admin/products/${id}`, {
+            method:  'PATCH',
+            headers: { 'Authorization': `Bearer ${getToken()}` }, // JANGAN pakai 'Content-Type': 'application/json' buat FormData
+            body:    formData,
+        });
+        if (!res.ok) throw new Error(await res.text());
+        
+        closeEditModal(); 
+        fetchProducts(); // Refresh data dari server biar fotonya update
+    } catch(e) { 
+        errEl.textContent='Gagal menyimpan: '+e.message; 
+        errEl.classList.remove('hidden'); 
+    } finally {
+        btnSave.disabled = false;
+        btnSave.textContent = 'Simpan Perubahan';
+    }
+}
+
+// ── DELETE MODAL ──────────────────────────────────────
+function openDeleteModal(productId, productName) {
+    deleteTargetId = productId;
+    document.getElementById('deleteProductName').textContent = productName;
+    document.getElementById('deleteModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); document.body.style.overflow=''; deleteTargetId=null; }
+
+async function confirmDelete() {
+    if (!deleteTargetId) return;
+    try {
+        // (Pastikan URL fetch di bawah ini sudah sesuai dengan Cara 1 atau Cara 2 yang lu pilih sebelumnya)
+        const res = await fetch(`${API}/admin/products/${deleteTargetId}`, {
+            method:  'DELETE',
+            headers: { 'Authorization': `Bearer ${getToken()}` },
+        });
+        
+        if (!res.ok) throw new Error(await res.text());
+        
+        allProducts = allProducts.filter(p=>p.id!==deleteTargetId);
+        closeDeleteModal(); 
+        renderTable();
+        
+        // PANGGIL PESAN SUKSES DI SINI
+        showToast('Produk berhasil dihapus dari sistem!'); 
+        
+    } catch(e) { 
+        alert('Gagal menghapus: '+e.message); 
+    }
+}
+// Close modals on backdrop
+['editModal','deleteModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e){ if(e.target===this){ if(id==='editModal')closeEditModal(); else closeDeleteModal(); } });
+});
+
+if (checkAuth()) fetchProducts();
+</script>
+</body>
+</html>

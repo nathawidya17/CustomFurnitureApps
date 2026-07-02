@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debbi Meubel — Furnitur Berkualitas, Buatan Tangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Noto Serif Display"', 'Georgia', 'serif'],
+                        sans:  ['"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: { 50:'#f8f7f5',100:'#efefed',200:'#e5e3df',300:'#d0ceca',400:'#b0ada6',500:'#8a8a84',600:'#555550',900:'#1a1a18' },
+                        rust: '#c8602a',
+                    },
+                    keyframes: {
+                        fadeUp:  { '0%':{ opacity:'0', transform:'translateY(16px)' }, '100%':{ opacity:'1', transform:'translateY(0)' } },
+                    },
+                    animation: {
+                        fadeUp:  'fadeUp 0.6s ease both',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; }
+        .fade-up { animation: fadeUp 0.6s ease both; }
+        .marquee-track { display:flex; width:max-content; animation: marquee 22s linear infinite; }
+        @keyframes marquee { 0%{ transform:translateX(0); } 100%{ transform:translateX(-50%); } }
+    </style>
+    <script src="navbar-auth.js"></script>
+</head>
+<body class="bg-stone-50 font-sans text-stone-900">
+    <!-- HERO -->
+    <section class="relative overflow-hidden">
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 pt-16 pb-20 md:pt-24 md:pb-28 grid md:grid-cols-2 gap-12 items-center">
+            <div class="fade-up">
+                <p class="text-xs tracking-[0.14em] uppercase text-stone-400 mb-4">Furnitur Custom Garut</p>
+                <h1 class="font-serif font-light text-5xl md:text-6xl leading-[1.1] text-stone-900 mb-6">
+                    Rumah yang nyaman, <em class="italic text-rust not-italic font-normal">dimulai dari</em> furnitur yang tepat.
+                </h1>
+                <p class="text-stone-600 text-base md:text-lg leading-relaxed mb-8 max-w-md">
+                    Debbi Meubel menghadirkan kursi, meja, dan lemari buatan tangan dengan kayu pilihan — dibuat sesuai ukuran dan gaya rumah Anda.
+                </p>
+                <div class="flex flex-wrap items-center gap-4">
+                    <a href="catalog.html" class="inline-flex items-center gap-2 px-7 py-3.5 bg-stone-900 text-white text-sm tracking-wide hover:bg-rust transition-colors">
+                        Jelajahi Katalog
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </a>
+                    <a href="#contact" class="inline-flex items-center gap-2 px-7 py-3.5 border border-stone-300 text-stone-700 text-sm tracking-wide hover:border-stone-900 hover:text-stone-900 transition-colors">
+                        Konsultasi Gratis
+                    </a>
+                </div>
+            </div>
+            <div class="fade-up relative" style="animation-delay:120ms">
+                <div class="aspect-[4/5] bg-stone-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop" alt="Furnitur Debbi Meubel" class="w-full h-full object-cover">
+                </div>
+                <div class="absolute -bottom-6 -left-6 hidden md:flex bg-white border border-stone-200 px-6 py-5 items-center gap-4">
+                    <span class="font-serif text-3xl text-rust">12+</span>
+                    <span class="text-xs text-stone-500 leading-tight max-w-[90px]">tahun pengalaman mengukir kayu</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="max-w-[1400px] mx-auto px-8 md:px-12"><hr class="border-stone-200"></div>
+
+    <!-- BRAND / MATERIAL STRIP -->
+    <section class="bg-stone-100 overflow-hidden py-5 border-y border-stone-200">
+        <div class="marquee-track text-stone-400 text-xs tracking-[0.2em] uppercase">
+            <div class="flex items-center gap-16 pr-16">
+                <span>Kayu Jati Pilihan</span><span>•</span>
+                <span>Buatan Tangan</span><span>•</span>
+                <span>Custom Ukuran</span><span>•</span>
+                <span>Garansi Bahan</span><span>•</span>
+                <span>Kirim Seluruh Indonesia</span><span>•</span>
+            </div>
+            <div class="flex items-center gap-16 pr-16">
+                <span>Kayu Jati Pilihan</span><span>•</span>
+                <span>Buatan Tangan</span><span>•</span>
+                <span>Custom Ukuran</span><span>•</span>
+                <span>Garansi Bahan</span><span>•</span>
+                <span>Kirim Seluruh Indonesia</span><span>•</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- KATEGORI -->
+    <section class="max-w-[1400px] mx-auto px-8 md:px-12 py-20 md:py-28">
+        <div class="flex items-end justify-between mb-12 flex-wrap gap-4">
+            <div>
+                <p class="text-xs tracking-[0.14em] uppercase text-stone-400 mb-3">Kategori Pilihan</p>
+                <h2 class="font-serif font-light text-3xl md:text-4xl text-stone-900">Temukan gaya untuk setiap ruang</h2>
+            </div>
+            <a href="catalog.html" class="text-sm text-stone-600 hover:text-rust transition-colors underline underline-offset-4">Lihat semua produk →</a>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-px bg-stone-200 border border-stone-200">
+            <a href="catalog.html?cat=kursi" class="group bg-stone-50 hover:bg-white transition-colors p-8 flex flex-col gap-6">
+                <div class="aspect-square overflow-hidden bg-stone-200">
+                    <img src="https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Kursi">
+                </div>
+                <div>
+                    <h3 class="font-serif text-lg text-stone-900 mb-1">Kursi</h3>
+                    <p class="text-xs text-stone-400">24 produk</p>
+                </div>
+            </a>
+            <a href="catalog.html?cat=meja" class="group bg-stone-50 hover:bg-white transition-colors p-8 flex flex-col gap-6">
+                <div class="aspect-square overflow-hidden bg-stone-200">
+                    <img src="https://images.unsplash.com/photo-1532372576444-dda954194ad0?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Meja">
+                </div>
+                <div>
+                    <h3 class="font-serif text-lg text-stone-900 mb-1">Meja</h3>
+                    <p class="text-xs text-stone-400">18 produk</p>
+                </div>
+            </a>
+            <a href="catalog.html?cat=lemari" class="group bg-stone-50 hover:bg-white transition-colors p-8 flex flex-col gap-6">
+                <div class="aspect-square overflow-hidden bg-stone-200">
+                    <img src="https://images.unsplash.com/photo-1595428774223-ebca17f9b3b3?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Lemari">
+                </div>
+                <div>
+                    <h3 class="font-serif text-lg text-stone-900 mb-1">Lemari</h3>
+                    <p class="text-xs text-stone-400">15 produk</p>
+                </div>
+            </a>
+            <a href="catalog.html?cat=sofa" class="group bg-stone-50 hover:bg-white transition-colors p-8 flex flex-col gap-6">
+                <div class="aspect-square overflow-hidden bg-stone-200">
+                    <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Sofa">
+                </div>
+                <div>
+                    <h3 class="font-serif text-lg text-stone-900 mb-1">Sofa</h3>
+                    <p class="text-xs text-stone-400">9 produk</p>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- TENTANG -->
+    <section id="about" class="bg-stone-900 text-stone-100">
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center">
+            <div class="aspect-[4/3] bg-stone-800 overflow-hidden order-2 md:order-1">
+                <img src="https://images.unsplash.com/photo-1581539250439-c96689b516dd?q=80&w=1200&auto=format&fit=crop" alt="Bengkel Debbi Meubel" class="w-full h-full object-cover">
+            </div>
+            <div class="order-1 md:order-2">
+                <p class="text-xs tracking-[0.14em] uppercase text-stone-400 mb-4">Tentang Kami</p>
+                <h2 class="font-serif font-light text-3xl md:text-4xl mb-6 leading-tight">
+                    Dikerjakan dengan tangan, <em class="italic text-rust not-italic">dijaga</em> kualitasnya.
+                </h2>
+                <p class="text-stone-300 leading-relaxed mb-8">
+                    Berbasis di Garut, Jawa Barat, Debbi Meubel telah membuat furnitur kayu sejak lebih dari satu dekade. Setiap produk dikerjakan oleh pengrajin berpengalaman, menggunakan kayu pilihan yang diolah dengan teliti agar tahan lama dan nyaman digunakan sehari-hari.
+                </p>
+                <div class="grid grid-cols-3 gap-6">
+                    <div>
+                        <p class="font-serif text-3xl text-rust mb-1">500+</p>
+                        <p class="text-xs text-stone-400 leading-tight">Produk terkirim</p>
+                    </div>
+                    <div>
+                        <p class="font-serif text-3xl text-rust mb-1">12</p>
+                        <p class="text-xs text-stone-400 leading-tight">Tahun berpengalaman</p>
+                    </div>
+                    <div>
+                        <p class="font-serif text-3xl text-rust mb-1">98%</p>
+                        <p class="text-xs text-stone-400 leading-tight">Pelanggan puas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONI -->
+    <section class="max-w-[1400px] mx-auto px-8 md:px-12 py-20 md:py-28">
+        <p class="text-xs tracking-[0.14em] uppercase text-stone-400 mb-3 text-center">Kata Pelanggan</p>
+        <h2 class="font-serif font-light text-3xl md:text-4xl text-stone-900 text-center mb-14">Dipercaya oleh pelanggan rumahan & bisnis</h2>
+
+        <div class="grid md:grid-cols-3 gap-px bg-stone-200 border border-stone-200">
+            <div class="bg-white p-8">
+                <p class="text-rust mb-4 text-lg">★★★★★</p>
+                <p class="text-stone-600 leading-relaxed mb-6">"Kursi makan custom-nya sangat rapi, kayunya halus dan kokoh. Pengerjaan tepat waktu sesuai yang dijanjikan."</p>
+                <p class="text-sm font-medium text-stone-900">Rina Wulandari</p>
+                <p class="text-xs text-stone-400">Bandung</p>
+            </div>
+            <div class="bg-white p-8">
+                <p class="text-rust mb-4 text-lg">★★★★★</p>
+                <p class="text-stone-600 leading-relaxed mb-6">"Pesan lemari ukuran khusus untuk kamar anak, hasilnya pas dan kualitas kayunya bagus sekali. Recommended!"</p>
+                <p class="text-sm font-medium text-stone-900">Andi Pratama</p>
+                <p class="text-xs text-stone-400">Garut</p>
+            </div>
+            <div class="bg-white p-8">
+                <p class="text-rust mb-4 text-lg">★★★★★</p>
+                <p class="text-stone-600 leading-relaxed mb-6">"Tim Debbi Meubel komunikatif, hasil meja kerja minimalisnya sesuai ekspektasi. Pasti order lagi."</p>
+                <p class="text-sm font-medium text-stone-900">Sarah Maharani</p>
+                <p class="text-xs text-stone-400">Jakarta</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="contact" class="bg-rust">
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-16 flex flex-col md:flex-row items-center justify-between gap-8 text-white">
+            <div>
+                <h2 class="font-serif font-light text-3xl md:text-4xl mb-2">Punya ide furnitur impian?</h2>
+                <p class="text-white/80">Konsultasikan kebutuhan Anda, gratis tanpa biaya tambahan.</p>
+            </div>
+            <a href="https://wa.me/6281122223333" target="_blank" class="inline-flex items-center gap-2 px-8 py-4 bg-stone-900 text-white text-sm tracking-wide hover:bg-stone-800 transition-colors whitespace-nowrap">
+                Hubungi via WhatsApp
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-stone-100 border-t border-stone-200">
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-14 grid md:grid-cols-4 gap-10">
+            <div class="md:col-span-2">
+                <a href="#" class="font-serif text-2xl font-light tracking-wide text-stone-900 mb-4 inline-block">
+                    Debbi <span class="text-rust">Meubel</span>
+                </a>
+                <p class="text-sm text-stone-500 leading-relaxed max-w-sm">
+                    Furnitur kayu buatan tangan dari Garut, Jawa Barat. Custom sesuai kebutuhan dan gaya ruang Anda.
+                </p>
+            </div>
+            <div>
+                <p class="text-xs tracking-widest uppercase text-stone-400 mb-4">Navigasi</p>
+                <ul class="space-y-2 text-sm text-stone-600">
+                    <li><a href="#" class="hover:text-rust transition-colors">Beranda</a></li>
+                    <li><a href="catalog.html" class="hover:text-rust transition-colors">Katalog</a></li>
+                    <li><a href="#about" class="hover:text-rust transition-colors">Tentang</a></li>
+                    <li><a href="#contact" class="hover:text-rust transition-colors">Kontak</a></li>
+                </ul>
+            </div>
+            <div>
+                <p class="text-xs tracking-widest uppercase text-stone-400 mb-4">Kontak</p>
+                <ul class="space-y-2 text-sm text-stone-600">
+                    <li>persisinfo@email.com</li>
+                    <li>+62 811-2222-3333</li>
+                    <li>Garut, Jawa Barat</li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12"><hr class="border-stone-200"></div>
+        <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-6 flex flex-col md:flex-row items-center justify-between gap-2">
+            <span class="text-xs text-stone-400">© 2026 Debbi Meubel</span>
+            <span class="text-xs text-stone-400">Garut, Jawa Barat</span>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -6,10 +6,10 @@ import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders
 // --- SECTION 1: GLOBAL CONFIG & STATE ---
 // ==========================================
 const container = document.getElementById('canvas-area');
-let basePriceFromDB = 0;
-const EXTRA_PART_PRICE = 200000;
-const LERP_SPEED = 0.1;
 let scene, camera, renderer, controls, raycaster, mouse;
+
+let basePriceFromDB = 0;
+const LERP_SPEED = 0.1;
 let mainCabinet, rackGroup, modelPrototype, modelOriginalBox;
 let productType = 'rack';
 let customConfig = { width: 1.2, height: 1.5, depth: 1.0 };
@@ -60,8 +60,16 @@ async function initHiro(loader) {
         hiroParts.laci = lc.scene; hiroParts.feet = ft.scene;
         modelPrototype = hiroParts.frame;
         modelOriginalBox = new THREE.Box3().setFromObject(hiroParts.frame);
-        document.getElementById('inputDrawer').oninput = (e) => { numDrawer = parseInt(e.target.value) || 0; document.getElementById('drawerVal').innerText = numDrawer; updateDisplay(); };
-        document.getElementById('inputLaci').oninput = (e) => { numLaci = parseInt(e.target.value) || 0; document.getElementById('laciVal').innerText = numLaci; updateDisplay(); };
+
+        // input untuk nambah laci dan drawer
+        document.getElementById('inputDrawer').oninput = (e) => {
+             numDrawer = parseInt(e.target.value) || 0;  // ambil nilai baru dari input, ubah jadi angka
+             document.getElementById('drawerVal').innerText = numDrawer;  // update teks penampil angka di UI
+             updateDisplay(); };
+        document.getElementById('inputLaci').oninput = (e) => { n
+            umLaci = parseInt(e.target.value) || 0;
+             document.getElementById('laciVal').innerText = numLaci; 
+             updateDisplay(); };
         updateDisplay(); focusCamera(9);
     } catch (e) { console.error("Hiro Load Error:", e); }
 }
@@ -477,11 +485,16 @@ function buildLemari2(states) {
     };
     const addDrawer2 = (xCenter, yPos, idStr) => {
         const dr = lemari2Parts.drawer.clone();
-        dr.traverse(n => {
+        dr.traverse(n => {``
             if (n.isMesh && n.material) {
                 n.material = n.material.clone(); n.material.side = THREE.DoubleSide;
                 n.castShadow = n.receiveShadow = true;
-                if (currentTexture) { n.material.map = currentTexture; n.material.color.set('#ffffff'); }
+
+                if (currentTexture) { 
+                    n.material.map = currentTexture; 
+                    n.material.color.set('#ffffff'); 
+                    n.material.roughness = 0.5; 
+                }
                 else { n.material.map = null; n.material.color.set(currentColor); }
                 n.material.needsUpdate = true;
             }
@@ -545,16 +558,21 @@ async function initStandard(loader) {
     });
 }
 
+// fungsi untuk membangun rak standar berdasarkan konfigurasi yang diberikan
 function buildStandard() {
-    const size = new THREE.Vector3(); modelOriginalBox.getSize(size);
+    const size = new THREE.Vector3(); 
+    modelOriginalBox.getSize(size); // ambil ukuran asli dari model
+
+    // hitung skala untuk menyesuaikan model dengan ukuran yang diinginkan
     const sX = customConfig.width / size.x;
     const sY = customConfig.height / size.y;
     const sZ = customConfig.depth / size.z;
     if (productType === 'rack') {
-        const offX = (rackCols > 1) ? 0.042 : 0, offY = (rackRows > 1) ? 0.095 : 0;
-        for (let r = 0; r < rackRows; r++) {
-            for (let c = 0; c < rackCols; c++) {
-                const clone = modelPrototype.clone();
+        const offX = (rackCols > 1) ? 0.042 : 0, // atur jarak kanan kiri   
+              offY = (rackRows > 1) ? 0.095 : 0; // atur jarak atas bawah
+        for (let r = 0; r < rackRows; r++) { // loop untuk setiap baris rak
+            for (let c = 0; c < rackCols; c++) { // loop untuk setiap kolom rak
+                const clone = modelPrototype.clone(); 
                 clone.scale.set(sX, sY, sZ);
                 clone.position.set(c * (customConfig.width - offX), r * (customConfig.height - offY), 0);
                 applyMat(clone, false); rackGroup.add(clone);
@@ -571,10 +589,12 @@ function buildStandard() {
 // ==========================================
 window.updateDoorType = (colIndex, val) => { cabinetDoorTypes[colIndex] = val; updateDisplay(); };
 
+
+// logic untuk rak lemari
 window.updateLemariConfig = (key, val) => {
     if (key === 'rodPosition') {
         lemariConfig.rodPosition = val;
-        const maxRak = val === 'tidak_ada' ? 4 : 3;
+        const maxRak = val === 'tidak_ada' ? 4 : 3; // kalau tidak ada gantungan, rak boleh max 4; kalau ada gantungan, max 3
         if (lemariConfig.leftRak > maxRak) lemariConfig.leftRak = maxRak;
         if (document.getElementById('input_leftRak')) {
             document.getElementById('input_leftRak').max = maxRak;
@@ -760,7 +780,7 @@ async function init() {
 
 function setupScene() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xe8e6e1);
+    scene.background = new THREE.Color(0x3e3c3a);
     scene.fog = new THREE.Fog(0xe8e6e1, 25, 70);
 
     const canvasEl = document.getElementById('canvas-area');
@@ -822,7 +842,7 @@ function setupEnvironment() {
     floor.rotation.x = -Math.PI / 2; floor.position.y = 0; floor.receiveShadow = true;
     scene.add(floor);
 
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0xe0ddd8, roughness: 1.0, metalness: 0.0 });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x4a4845, roughness: 1.0, metalness: 0.0 });
     const wallBack = new THREE.Mesh(new THREE.PlaneGeometry(50, 20), wallMat);
     wallBack.position.set(0, 10, -8); wallBack.receiveShadow = true; scene.add(wallBack);
     const wallLeft = new THREE.Mesh(new THREE.PlaneGeometry(50, 20), wallMat.clone());
@@ -903,13 +923,15 @@ function getInteractiveStates() {
 
 function setupEventListeners() {
     window.addEventListener('pointermove', (event) => {
+        // menangkap input slider untuk dimensi rak
         ['width', 'height', 'depth'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.oninput = (e) => {
                 const val = parseFloat(e.target.value);
-                customConfig[id] = val / 100;
+                customConfig[id] = val / 100; // konversi cm ke m
                 document.getElementById(id + 'Value').textContent = Math.round(val);
-                updateDisplay(); updatePriceUI();
+                updateDisplay(); 
+                updatePriceUI();
             };
         });
         const rect = renderer.domElement.getBoundingClientRect();
@@ -935,8 +957,7 @@ function setupEventListeners() {
     });
 }
 
-// 3. Fungsi Apply Material (Yang Sudah Disempurnakan)
-// 3. Fungsi Apply Material (Dengan Logika Deteksi Kaca/Gagang)
+// 3. Fungsi Apply Material 
 function applyMat(obj, isHiro) {
     obj.traverse(n => {
         if (n.isMesh && n.material) {
@@ -946,7 +967,7 @@ function applyMat(obj, isHiro) {
             n.material.transparent = false;
             n.material.opacity = 1.0;
             
-            // LOGIKA CERDAS: Cek warna asli GLTF untuk mendeteksi kaca/besi
+            //  Cek warna asli GLTF untuk mendeteksi kaca/besi
             const r = n.material.color.r, g = n.material.color.g, b = n.material.color.b;
             const isGrey = (Math.abs(r - g) < 0.05 && Math.abs(g - b) < 0.05 && r < 0.85);
             const isKnob = (n.name + ' ' + n.material.name).toLowerCase().match(/handle|knob|gagang|kenop|kaca|glass/);
@@ -1111,13 +1132,15 @@ function focusCamera(dist) {
     camera.position.set(center.x, center.y, d);
     controls.update(); 
 }
+
+// fungsi untuk animasi buka-tutup pintu dan laci
 function animate() {
     requestAnimationFrame(animate);
     if (rackGroup) rackGroup.traverse(c => {
         if (c.userData?.canOpen) {
-            if (c.userData.type === 'cabinet_door') {
-                c.rotation.y = THREE.MathUtils.lerp(c.rotation.y, c.userData.isOpen ? c.userData.openRotation : c.userData.baseRotation, LERP_SPEED);
-            } else if (c.userData.type === 'drawer' || c.userData.type === 'cabinet_drawer') {
+            if (c.userData.type === 'cabinet_door') { // bagian pintu berputar
+                c.rotation.y = THREE.MathUtils.lerp(c.rotation.y, c.userData.isOpen ? c.userData.openRotation : c.userData.baseRotation, LERP_SPEED); // target: kalau isOpen=true menuju openRotation, kalau false balik ke posisi awal
+            } else if (c.userData.type === 'drawer' || c.userData.type === 'cabinet_drawer') { // bagian laci bergerak maju-mundur
                 c.position.z = THREE.MathUtils.lerp(c.position.z, c.userData.isOpen ? c.userData.openZ : c.userData.baseZ, LERP_SPEED);
             }
         }
@@ -1126,16 +1149,13 @@ function animate() {
     renderer.render(scene, camera);
 }
 
+// 2. UPDATE FUNGSI SAVE AND ORDER
 window.saveAndOrder = () => {
     const totalEl = document.getElementById('totalPrice');
     if (!totalEl) { console.error('Element totalPrice tidak ditemukan'); return; }
 
-    let finishingLabel = 'Putih (Default)';
-    if (currentTexture) {
-        finishingLabel = localStorage.getItem('selectedFinishingName') || 'Tekstur Custom';
-    } else if (currentColor !== '#ffffff') {
-        finishingLabel = localStorage.getItem('selectedFinishingName') || currentColor;
-    }
+    // Ambil nama finishing langsung dari Local Storage
+    let finishingLabel = localStorage.getItem('selectedFinishingName') || 'Putih (Default)';
 
     const totalPriceRaw = totalEl.textContent.replace(/[^0-9]/g, '');
 
@@ -1152,10 +1172,8 @@ window.saveAndOrder = () => {
         finishing:   finishingLabel,
         config:      encodeURIComponent(JSON.stringify(getCurrentConfig()))
     });
-    // Tambah di dalam window.saveAndOrder, sebelum redirect
-    const texPath = sessionStorage.getItem('lastTexturePath') || null;
-    sessionStorage.setItem('orderTexturePath', texPath || '');
 
+    // Redirect ke halaman order
     window.location.href = `order.html?${params.toString()}`;
 };
 
@@ -1185,10 +1203,19 @@ function getCurrentConfig() {
 window.currentFinishing = 'Putih'; 
 window.currentTexture = null; 
 
-// 2. Fungsi dipanggil saat tombol HTML diklik
+// 2. Fungsi untuk ganti tekstur finishing, sekaligus menyimpan pilihan ke Local Storage agar bisa diakses di halaman order
 window.selectTexture = function(type, path, name, btn) {
     window.currentFinishing = name; 
     
+    //  Simpan tekstur & nama ke Local Storage ---
+    localStorage.setItem('selectedFinishingName', name);
+    if (path) {
+        localStorage.setItem('selectedTexturePath', path);
+        localStorage.removeItem('selectedColor');
+    } else {
+        localStorage.removeItem('selectedTexturePath');
+    }
+
     // Hapus border aktif di semua tombol
     document.querySelectorAll('.texture-btn').forEach(b => {
         b.classList.remove('border-stone-900', 'ring-1', 'ring-stone-900');
@@ -1206,9 +1233,6 @@ window.selectTexture = function(type, path, name, btn) {
             tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
             tex.repeat.set(1, 1);
             tex.colorSpace = THREE.SRGBColorSpace;
-            
-            // PENTING: Gunakan updateDisplay() alih-alih applyMat()
-            // Agar model 3D di-rebuild dari nol dan kaca/gagang tidak ikut ketimpa
             updateDisplay();
         });
     } else {

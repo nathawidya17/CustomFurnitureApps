@@ -32,35 +32,14 @@
     </script>
     <style>
         body { -webkit-font-smoothing: antialiased; }
-        .skeleton { background: linear-gradient(90deg,#efefed 25%,#f8f7f5 50%,#efefed 75%); background-size:600px 100%; animation:shimmer 1.4s linear infinite; }
+        .skeleton { background: linear-gradient(90deg,#70706e 25%,#4c4b4a 50%,#efefed 75%); background-size:600px 100%; animation:shimmer 1.4s linear infinite; }
         @keyframes shimmer { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
         .catalog-card { animation: fadeUp 0.45s ease both; }
         @keyframes fadeUp { 0%{opacity:0;transform:translateY(12px)} 100%{opacity:1;transform:translateY(0)} }
     </style>
+    <script src="navbar-auth.js"></script>
 </head>
-<body class="bg-white font-sans text-stone-900">
-
-    <header class="sticky top-0 z-50 bg-white border-b border-stone-200">
-        <div class="max-w-[1400px] mx-auto px-8 md:px-12 h-16 flex items-center justify-between">
-            <a href="#" class="font-serif text-2xl font-light tracking-wide text-stone-900">
-                Debbi <span class="text-rust">Meubel</span>
-            </a>
-            <div class="flex items-center gap-1">
-                <div class="hidden md:flex items-center border border-stone-200 bg-stone-50 focus-within:border-stone-900 focus-within:bg-white transition-colors">
-                    <input type="text" placeholder="Cari produk..." class="bg-transparent px-4 py-2 text-sm placeholder-stone-400 outline-none w-56 font-sans text-stone-900">
-                    <button class="px-3 py-2 text-stone-400 hover:text-stone-900 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    </button>
-                </div>
-                <button class="p-2.5 text-stone-400 hover:text-stone-900 hover:bg-stone-50 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </header>
-
+<body class="bg-stone-200 font-sans text-stone-900">
     <div class="max-w-[1400px] mx-auto px-8 md:px-12 pt-12 pb-8">
         <p class="text-xs tracking-[0.14em] uppercase text-stone-400 mb-3">Koleksi Produk</p>
         <h1 class="font-serif font-light text-4xl md:text-5xl text-stone-900">
@@ -71,7 +50,7 @@
     <div class="max-w-[1400px] mx-auto px-8 md:px-12"><hr class="border-stone-200"></div>
 
     <div class="max-w-[1400px] mx-auto px-8 md:px-12 py-10 pb-24">
-        <div id="catalogList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 bg-white"></div>
+        <div id="catalogList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 bg-stone-200"></div>
     </div>
 
     <div class="max-w-[1400px] mx-auto px-8 md:px-12 pb-16 flex items-center justify-center gap-1">
