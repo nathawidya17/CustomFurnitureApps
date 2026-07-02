@@ -68,21 +68,27 @@ const generateOrderCode = () => {
     const rand = Math.random().toString(36).substr(2,5).toUpperCase();
     return `ORD-${ymd}-${rand}`;
 };
-// Mengubah otomatis 08xxx jadi 628xxx
-const formatNoWA = (no) => no.startsWith('0') ? '62' + no.slice(1) : no;
 
-// Fungsi pengirim WA via Fonnte
+// ── HELPER WA WABLAS (PADAT) ──────────────────────────────────
+const formatNoWA = (no) => no?.startsWith('0') ? '62' + no.slice(1) : no;
 const sendWA = async (target, message) => {
-    try {
-        const response = await fetch('https://api.fonnte.com/send', {
-            method: 'POST',
-            headers: { 'Authorization': 'yWrLHmjXRFpY9UKmkkeh' },
-            body: new URLSearchParams({ target, message })
-        });
-        const data = await response.json();
-        console.log('Respon Fonnte:', data); // <--- INI PENTING: Lihat hasilnya di terminal
-    } catch (e) { console.error('Error WA:', e.message); }
+  try {
+    const domain = 'https://smg.wablas.com'; 
+    const token  = 'oFdcnXbhislmPc9sNIcMeugzMpBZpK1nkqRpWgtz057NSJKKyLlgW5v';  
+    const secret = 'av7Ev3Ib'; 
+    
+    await fetch(`${domain}/api/send-message`, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `${token}.${secret}`, 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({ phone: target, message })
+    }).catch(e => console.error('Error Wablas:', e));
+  } catch (e) { console.error('Error:', e.message); }
 };
+
+
 router.post('/', authenticate, async (req, res) => {
     try {
         const {
