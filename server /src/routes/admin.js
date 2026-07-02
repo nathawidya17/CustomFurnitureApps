@@ -5,16 +5,23 @@ const { authenticate, adminOnly } = require('../middleware/auth');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// ── HELPER WA FONNTE (PADAT) ──────────────────────────────────
+// ── HELPER WA WABLAS (PADAT) ──────────────────────────────────
 const formatNoWA = (no) => no?.startsWith('0') ? '62' + no.slice(1) : no;
 const sendWA = async (target, message) => {
   try {
-    await fetch('https://api.fonnte.com/send', {
+    const domain = 'https://smg.wablas.com'; 
+    const token  = 'oFdcnXbhislmPc9sNIcMeugzMpBZpK1nkqRpWgtz057NSJKKyLlgW5v';  // <-- Isi API Token dari Wablas
+    const secret = 'av7Ev3Ib'; // <-- Isi Secret Key dari Wablas
+    
+    await fetch(`${domain}/api/send-message`, {
       method: 'POST',
-      headers: { 'Authorization': 'yWrLHmjXRFpY9UKmkkeh' }, // <-- PASTE TOKEN FONNTE LU DI SINI
-      body: new URLSearchParams({ target, message })
-    });
-  } catch (e) { console.error('Error WA:', e.message); }
+      headers: { 
+        'Authorization': `${token}.${secret}`, 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({ phone: target, message })
+    }).catch(e => console.error('Error Wablas:', e));
+  } catch (e) { console.error('Error:', e.message); }
 };
 
 // GET /api/admin/stats

@@ -38,6 +38,25 @@ let lemari2Config = {
     kananRak: 2,
     kananDrawer: 1,
 };
+const FINISHING_DISPLAY_LABELS = {
+    // Tier 1 — PVC Polos
+    'Putih':      'PVC Polos Putih',
+    'Abu':        'PVC Polos Abu-abu',
+
+    // Tier 2 — PVC Motif Kayu
+    'Kayu Terang': 'PVC Motif Kayu Terang',
+    'Kayu':        'PVC Motif Kayu Natural',
+    'Kayu Abu':    'PVC Motif Kayu Warna Abu',
+
+    // Tier 3 — HPL Standar
+    'Oak Putih':   'HPL Motif Oak Putih',
+    'Abu Terang':  'HPL Abu Terang',
+    'Abu Gelap':   'HPL Abu Gelap',
+
+    // Tier 4 — HPL Premium
+    'Kayu Mewah':  'HPL Motif Kayu Marmer',
+};
+
 
 
 // ==========================================
@@ -1205,10 +1224,12 @@ window.currentTexture = null;
 
 // 2. Fungsi untuk ganti tekstur finishing, sekaligus menyimpan pilihan ke Local Storage agar bisa diakses di halaman order
 window.selectTexture = function(type, path, name, btn) {
-    window.currentFinishing = name; 
+    window.currentFinishing = name; // tetap pakai nama internal untuk kalkulasi harga
     
-    //  Simpan tekstur & nama ke Local Storage ---
-    localStorage.setItem('selectedFinishingName', name);
+    // ✅ Simpan LABEL TAMPILAN ke localStorage (bukan nama internal)
+    const displayLabel = FINISHING_DISPLAY_LABELS[name] || name;
+    localStorage.setItem('selectedFinishingName', displayLabel);
+
     if (path) {
         localStorage.setItem('selectedTexturePath', path);
         localStorage.removeItem('selectedColor');
@@ -1216,18 +1237,15 @@ window.selectTexture = function(type, path, name, btn) {
         localStorage.removeItem('selectedTexturePath');
     }
 
-    // Hapus border aktif di semua tombol
     document.querySelectorAll('.texture-btn').forEach(b => {
         b.classList.remove('border-stone-900', 'ring-1', 'ring-stone-900');
         b.classList.add('border-stone-200');
     });
-    // Tambah border ke tombol yang sedang diklik
     if (btn) {
         btn.classList.remove('border-stone-200');
         btn.classList.add('border-stone-900', 'ring-1', 'ring-stone-900');
     }
 
-    // SELALU LOAD GAMBAR TEKSTUR DARI HTML (Termasuk Putih & Abu)
     if (path) {
         window.currentTexture = textureLoader.load(path, (tex) => {
             tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -1240,7 +1258,6 @@ window.selectTexture = function(type, path, name, btn) {
         updateDisplay();
     }
 
-    // Hitung ulang harga
     updatePriceUI();
 };
 init();
