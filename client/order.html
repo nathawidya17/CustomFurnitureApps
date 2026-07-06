@@ -613,7 +613,7 @@ async function submitOrder() {
                 productId:       parseInt(orderData.productId)||1,
                 config:          typeof orderData.config==='object'?JSON.stringify(orderData.config):orderData.config,
                 totalPrice:      orderData.totalPrice,
-                notes:           '',
+                finishing:       orderData.finishing,   // ← tambahkan baris ini
                 customerName:    userData.name,
                 customerPhone:   userData.phone,
                 customerEmail:   userData.email,

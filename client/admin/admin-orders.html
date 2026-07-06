@@ -78,7 +78,7 @@
     <main class="flex-1 overflow-y-auto">
         <div class="bg-white border-b border-stone-200 sticky top-0 z-30">
             <div class="px-8 h-14 flex items-center justify-between">
-                <h2 class="text-sm font-medium text-stone-900">Manajemen Pesanan</h2>
+                <h2 class="text-sm font-medium text-stone-900">Manajemen slsklsks</h2>
                 <div class="flex items-center gap-3">
                     <span class="text-xs text-stone-400" id="lastUpdated">—</span>
                     <button onclick="fetchOrders()" class="text-stone-400 hover:text-stone-900 transition-colors">
@@ -90,7 +90,7 @@
 
         <div class="p-8">
             <div class="mb-6">
-                <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Manajemen Pesanan</h1>
+                <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Manajemen sksksk</h1>
                 <p class="text-sm text-stone-400">Kelola dan perbarui status pesanan pelanggan.</p>
             </div>
 
@@ -156,7 +156,11 @@
             <div class="border border-stone-100 bg-stone-50 p-4">
                 <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-1">Produk</p>
                 <p class="font-serif font-light text-lg text-stone-900" id="modalProduct">—</p>
-                <p class="text-sm font-medium text-rust mt-1" id="modalPrice">—</p>
+                <p class="text-sm font-medium text-rust mt-1 mb-3" id="modalPrice">—</p>
+                
+                <!-- TAMBAHAN: FINISHING INFO -->
+                <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-1 border-t border-stone-200 pt-3">Finishing</p>
+                <p class="text-sm text-stone-700" id="modalFinishing">—</p>
             </div>
             <div>
                 <p class="text-[0.6rem] tracking-widest uppercase text-stone-400 mb-3">Konfigurasi Pesanan</p>
@@ -182,13 +186,6 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     Lihat Bukti Bayar
                 </a>
-            </div>
-
-            <div class="border-t border-stone-200 pt-5">
-                <button onclick="openStatusModalFromDetail()"
-                    class="w-full py-3 bg-stone-900 hover:bg-rust text-white text-[0.7rem] tracking-widest uppercase transition-colors">
-                    Perbarui Status Pesanan
-                </button>
             </div>
         </div>
     </div>
@@ -327,19 +324,32 @@ function openModal(orderId) {
     document.getElementById('modalDate').textContent        = formatDateTime(order.createdAt);
     document.getElementById('modalProduct').textContent     = order.productName||'—';
     document.getElementById('modalPrice').textContent       = formatIDR(order.totalPrice||0);
+    
+    // MENGISI DATA FINISHING
+    document.getElementById('modalFinishing').textContent   = order.finishing || 'Standar / Tidak Ada';
+    
     document.getElementById('modalCustName').textContent    = order.customerName||'—';
     document.getElementById('modalCustPhone').textContent   = order.customerPhone||'—';
     document.getElementById('modalCustEmail').textContent   = order.customerEmail||'—';
     document.getElementById('modalCustAddress').textContent = order.customerAddress||'—';
 
+    // ── DI DALAM FUNGSI openModal(orderId) ──
     let cfg={};
     try { cfg=JSON.parse(order.config||'{}'); } catch(e){}
+    
+    // 1. Ambil finishing dari dalam config
+    document.getElementById('modalFinishing').textContent = cfg.finishing || 'Standar / Tidak Ada';
+    
+    // 2. Hapus properti finishing dari object agar tidak tercetak dua kali di list konfigurasi bawah
+    const { finishing, ...otherConfig } = cfg;
+
     const cfgKeys={width:'Lebar',height:'Tinggi',depth:'Kedalaman',cols:'Kolom',rows:'Baris',drawer:'Jumlah Drawer',laci:'Jumlah Laci',rodPosition:'Posisi Gantungan',leftRak:'Rak Kiri',rightRakTop:'Rak Kanan Atas',rightRakBottom:'Rak Kanan Bawah',kiriMode:'Mode Kiri',kiriRak:'Rak Kiri',kananRak:'Rak Kanan',kananDrawer:'Drawer Kanan'};
-    const rows=Object.entries(cfg).filter(([k,v])=>v!==undefined&&v!==null&&v!=='');
+    
+    // 3. Render sisanya menggunakan otherConfig
+    const rows=Object.entries(otherConfig).filter(([k,v])=>v!==undefined&&v!==null&&v!=='');
     document.getElementById('modalConfig').innerHTML = rows.length===0
         ? `<p class="text-sm text-stone-400 italic p-3">Konfigurasi standar</p>`
         : rows.map(([k,v])=>`<div class="flex justify-between px-4 py-2.5 border-b border-stone-100 last:border-0"><span class="text-xs text-stone-400">${cfgKeys[k]||k}</span><span class="text-xs font-medium text-stone-800">${v}${['width','height','depth'].includes(k)?' cm':''}</span></div>`).join('');
-
     const pw=document.getElementById('modalProofWrap');
     if(order.paymentProof){pw.classList.remove('hidden');document.getElementById('modalProofLink').href=`http://localhost:3001/uploads/${order.paymentProof}`;}else pw.classList.add('hidden');
 
@@ -347,14 +357,6 @@ function openModal(orderId) {
     document.body.style.overflow='hidden';
 }
 function closeModal() { document.getElementById('orderModal').classList.remove('open'); document.body.style.overflow=''; currentOrderId=null; }
-
-// Tombol "Perbarui Status Pesanan" di dalam modal Detail —
-// tutup modal Detail, lalu buka modal Update Status untuk order yang sama
-function openStatusModalFromDetail() {
-    const id = currentOrderId;
-    closeModal();
-    openStatusModal(id);
-}
 
 // ── MODAL 2: UPDATE STATUS (TERPISAH DARI DETAIL) ───────────
 function openStatusModal(orderId) {

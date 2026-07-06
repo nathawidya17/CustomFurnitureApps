@@ -74,12 +74,27 @@ const handleUpload = (req, res, next) => {
 // ── LOGIKA CONTROLLER UTAMA ───────────────────────────────────
 const createOrder = async (req, res) => {
     try {
-        const { productName, productId, config, totalPrice, notes, customerName, customerPhone, customerEmail, customerAddress } = req.body;
+        // 1. Hapus 'notes' dan tambahkan 'finishing' di tangkapan req.body
+        const { productName, productId, config, totalPrice, finishing, customerName, customerPhone, customerEmail, customerAddress } = req.body;
+        
+        // 2. Parse config agar menjadi object JavaScript yang bisa dimanipulasi
+        let parsedConfig = typeof config === 'string' ? JSON.parse(config || '{}') : (config || {});
+        
+        // 3. Masukkan data finishing ke dalam config (jika user memilih finishing)
+        if (finishing) {
+            parsedConfig.finishing = finishing;
+        }
+
         const order = await prisma.order.create({
             data: {
-                orderCode: generateOrderCode(), userId: req.user.id, productId: parseInt(productId) || 1,
-                productName, config: typeof config === 'object' ? JSON.stringify(config) : config,
-                totalPrice: parseInt(totalPrice), status: 'PENDING',
+                orderCode: generateOrderCode(), 
+                userId: req.user.id, 
+                productId: parseInt(productId) || 1,
+                productName, 
+                // 4. Ubah kembali config yang sudah ditambah finishing menjadi string JSON
+                config: JSON.stringify(parsedConfig), 
+                totalPrice: parseInt(totalPrice), 
+                status: 'PENDING',
                 customerName, customerPhone, customerEmail, customerAddress
             }
         });
@@ -87,7 +102,7 @@ const createOrder = async (req, res) => {
         const pesanAdmin = `🚨 *Pesanan Baru Masuk!*\nKode: ${order.orderCode}\nNama: ${customerName}\nItem: ${productName}\nTotal: Rp${totalPrice}\n\nMohon segera dicek di Dashboard.`;
         sendWA('6281218212498', pesanAdmin).catch(()=>{});
 
-        const pesanPelanggan = `Halo Kak *${customerName}*,\n\nTerima kasih telah berbelanja di *Debbi Meubel*. Pesanan Anda dengan kode *${order.orderCode}* telah kami terima.\n\nTotal Pembayaran: *Rp${totalPrice}*\nStatus: *MENUNGGU PERSETUJUAN*\n\nBukti pembayaran Anda telah masuk ke sistem dan saat ini sedang menunggu konfirmasi dari admin. Terima kasih!`;
+        const pesanPelanggan = `Halo Kak *${customerName}*,\n\nTerima kasih telah berbelanja di *Debbi Meubel*. Pesanan Anda dengan kode *${order.orderCode}* telah kami terima.\n\nTotal Pembayaran: *Rp${totalPrice}*\nStatus: *MENUNGGU VERIFIKASI*\n\nAdmin akan segera memverifikasi pesanan Anda. Terima kasih!`;
         sendWA(formatNoWA(customerPhone), pesanPelanggan).catch(()=>{});
 
         res.json({ message: 'Pesanan berhasil dibuat', order });

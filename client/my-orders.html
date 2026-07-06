@@ -82,25 +82,41 @@ function getStatusBadge(status) {
     return `<span class="text-xs font-medium uppercase tracking-wider ${config.css}">${config.text}</span>`;
 }
 
-// Menampilkan kustomisasi jadi list yang rapi
-function parseConfig(configData, finishing) {
-    let details = [];
-    if (finishing) details.push(`Finishing: ${finishing}`);
-    
-    if (!configData) return details.join('<br>');
+function parseConfig(configData) {
+    if (!configData) return 'Spesifikasi Standar';
     try {
         const cfg = typeof configData === 'string' ? JSON.parse(configData) : configData;
+        let details = [];
+
+        if (cfg.finishing) details.push(`Finishing: ${cfg.finishing}`);
         if (cfg.width && cfg.height && cfg.depth) details.push(`Dimensi: ${cfg.width}x${cfg.depth}x${cfg.height} cm`);
+
+        // Field skema Rak
         if (cfg.cols)   details.push(`Jumlah Kolom: ${cfg.cols}`);
         if (cfg.rows)   details.push(`Jumlah Baris: ${cfg.rows}`);
         if (cfg.drawer) details.push(`Jumlah Drawer: ${cfg.drawer}`);
         if (cfg.laci)   details.push(`Jumlah Laci Kosong: ${cfg.laci}`);
-        if (cfg.rodPosition) details.push(`Gantungan Baju: ${cfg.rodPosition.replace(/_/g, ' ')}`);
-        
-        return details.join('<br>');
-    } catch (e) { return finishing ? `Finishing: ${finishing}` : 'Spesifikasi Standar'; }
-}
 
+        // Field skema Lemari — varian 1 (kiriMode/kiriRak/kananRak/kananDrawer)
+        if (cfg.kiriMode) details.push(`Sisi Kiri: ${cfg.kiriMode.replace(/_/g, ' ')}`);
+        if (cfg.kiriRak     !== undefined && cfg.kiriRak > 0)     details.push(`Rak Kiri: ${cfg.kiriRak}`);
+        if (cfg.kananRak    !== undefined && cfg.kananRak > 0)    details.push(`Rak Kanan: ${cfg.kananRak}`);
+        if (cfg.kananDrawer !== undefined && cfg.kananDrawer > 0) details.push(`Drawer Kanan: ${cfg.kananDrawer}`);
+
+        // Field skema Lemari — varian 2 (leftRak/rightRakTop/rightRakBottom)
+        if (cfg.leftRak        !== undefined && cfg.leftRak > 0)        details.push(`Rak Kiri: ${cfg.leftRak}`);
+        if (cfg.rightRakTop    !== undefined && cfg.rightRakTop > 0)    details.push(`Rak Kanan Atas: ${cfg.rightRakTop}`);
+        if (cfg.rightRakBottom !== undefined && cfg.rightRakBottom > 0) details.push(`Rak Kanan Bawah: ${cfg.rightRakBottom}`);
+
+        // Gantungan baju (dipakai di beberapa skema lemari)
+        if (cfg.rodPosition) details.push(`Gantungan Baju: ${cfg.rodPosition.replace(/_/g, ' ')}`);
+
+        if (details.length === 0) return 'Spesifikasi Standar';
+        return details.join('<br>');
+    } catch (e) {
+        return 'Spesifikasi Standar';
+    }
+}
 async function fetchMyOrders() {
     try {
         const res = await fetch(`${API}/orders/my`, {
