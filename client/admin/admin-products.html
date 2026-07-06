@@ -265,16 +265,34 @@ function renderTable() {
     const tbody = document.getElementById('productsTableBody');
     document.getElementById('productsCount').textContent = `${allProducts.length} produk`;
     if (!allProducts.length) { tbody.innerHTML=`<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-stone-400">Tidak ada produk</td></tr>`; return; }
+
     tbody.innerHTML = allProducts.map(p => {
-        const orderCount = allOrders.filter(o=>o.productId===p.id).length;
+        const orderCount = allOrders.filter(o => o.productId === p.id).length;
+
+        // ── Bangun URL thumbnail yang benar ───────────────────
+        // DB hanya simpan nama file (misal: "hiro drawer 2 st.webp")
+        // Jadi kita prefix dengan URL backend supaya browser tahu harus
+        // ambil dari server Express, bukan dari folder client/admin/
+        const thumbnailUrl = p.thumbnail
+            ? `http://localhost:3001/uploads/${p.thumbnail}`
+            : null;
+
+        const thumbnailHTML = thumbnailUrl
+            ? `<img src="${thumbnailUrl}"
+                    class="w-full h-full object-cover"
+                    onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-stone-100\\'><svg class=\\'w-4 h-4 text-stone-300\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'1\\' d=\\'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4\\'/></svg></div>'">`
+            : `<div class="w-full h-full flex items-center justify-center">
+                    <svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+               </div>`;
+
         return `
         <tr class="border-b border-stone-100 last:border-0">
             <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-stone-100 flex-shrink-0 overflow-hidden">
-                        ${p.thumbnail
-    ? `<img src="${p.thumbnail.startsWith('http') ? p.thumbnail : 'http://localhost:3001/uploads/' + p.thumbnail.replace('uploads/', '')}" class="w-full h-full object-cover" onerror="this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-red-50\\'><span class=\\'text-[0.5rem] text-red-400 font-bold uppercase\\'>Error</span></div>'">`
-    : `<div class="w-full h-full flex items-center justify-center"><svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>`}
+                        ${thumbnailHTML}
                     </div>
                     <div>
                         <p class="text-sm font-medium text-stone-800">${p.name}</p>
@@ -283,16 +301,24 @@ function renderTable() {
                 </div>
             </td>
             <td class="px-5 py-3.5 text-xs font-mono text-stone-400">${p.slug}</td>
-            <td class="px-5 py-3.5 text-sm text-stone-700">${formatIDR(p.basePrice||0)}</td>
-            <td class="px-5 py-3.5 text-xs text-stone-500">${p.size||'—'}</td>
+            <td class="px-5 py-3.5 text-sm text-stone-700">${formatIDR(p.basePrice || 0)}</td>
+            <td class="px-5 py-3.5 text-xs text-stone-500">${p.size || '—'}</td>
             <td class="px-5 py-3.5">
-                <span class="badge ${p.isActive?'badge-approved':'badge-rejected'}">${p.isActive?'Aktif':'Nonaktif'}</span>
+                <span class="badge ${p.isActive ? 'badge-approved' : 'badge-rejected'}">
+                    ${p.isActive ? 'Aktif' : 'Nonaktif'}
+                </span>
             </td>
             <td class="px-5 py-3.5 text-sm text-stone-700">${orderCount}</td>
             <td class="px-5 py-3.5">
                 <div class="flex items-center gap-2">
-                    <button onclick="openEditModal(${p.id})" class="text-xs text-stone-500 hover:text-stone-900 border border-stone-200 px-2.5 py-1 hover:border-stone-900 transition-colors">Edit</button>
-                    <button onclick="openDeleteModal(${p.id},'${p.name.replace(/'/g,"\\\'")}')" class="text-xs text-red-400 hover:text-red-600 border border-red-200 px-2.5 py-1 hover:border-red-400 transition-colors">Hapus</button>
+                    <button onclick="openEditModal(${p.id})"
+                        class="text-xs text-stone-500 hover:text-stone-900 border border-stone-200 px-2.5 py-1 hover:border-stone-900 transition-colors">
+                        Edit
+                    </button>
+                    <button onclick="openDeleteModal(${p.id},'${p.name.replace(/'/g, "\\'")}')"
+                        class="text-xs text-red-400 hover:text-red-600 border border-red-200 px-2.5 py-1 hover:border-red-400 transition-colors">
+                        Hapus
+                    </button>
                 </div>
             </td>
         </tr>`;

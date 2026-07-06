@@ -44,8 +44,6 @@ model Order {
   totalPrice   Int
   status       OrderStatus @default(PENDING)
   paymentProof String?
-  notes        String?     @db.Text
-  adminNotes   String?     @db.Text
 
   // Data pelanggan
   customerName    String?

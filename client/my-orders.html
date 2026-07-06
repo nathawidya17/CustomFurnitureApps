@@ -22,31 +22,35 @@
             }
         }
     </script>
-    <style>
-        body { -webkit-font-smoothing: antialiased; }
-        .tab-active { border-bottom-color: #1a1a18; color: #1a1a18; font-weight: 500; }
-    </style>
     <script src="navbar-auth.js"></script>
+    <style>
+        body { -webkit-font-smoothing: antialiased; background-color: #f8f7f5; }
+        select { -webkit-appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23555550" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 12px; }
+    </style>
 </head>
-<body class="bg-stone-50 font-sans text-stone-900 min-h-screen">
+<body class="font-sans text-stone-900 min-h-screen">
 
-<main class="max-w-[1000px] mx-auto px-6 py-10">
-    <div class="mb-8">
-        <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Daftar Pesanan Saya</h1>
-        <p class="text-sm text-stone-400">Pantau status pembuatan dan pengiriman furnitur kustom Anda.</p>
-    </div>
-
-    <div class="bg-white border border-stone-200 flex overflow-x-auto mb-6 sticky top-16 z-40 shadow-sm">
-        <button onclick="switchTab('ALL', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all tab-active">Semua</button>
-        <button onclick="switchTab('PENDING', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Belum Bayar</button>
-        <button onclick="switchTab('WAITING_APPROVAL', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Verifikasi</button>
-        <button onclick="switchTab('IN_PRODUCTION', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Diproses</button>
-        <button onclick="switchTab('DONE', this)" class="flex-1 text-center py-4 text-xs tracking-wider uppercase text-stone-400 border-b-2 border-transparent whitespace-nowrap px-4 transition-all">Selesai</button>
+<main class="max-w-[800px] mx-auto px-4 md:px-0 py-8">
+    
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+        <div>
+            <h1 class="font-serif font-light text-3xl text-stone-900 mb-1">Pesanan Saya</h1>
+            <p class="text-sm text-stone-400">Pantau status pembuatan dan pengiriman furnitur kustom Anda.</p>
+        </div>
+        <div class="w-full md:w-64">
+            <select onchange="switchTab(this.value)" class="w-full bg-white border border-stone-200 text-sm text-stone-700 py-3 pl-4 pr-10 outline-none hover:border-stone-400 transition-colors cursor-pointer shadow-sm">
+                <option value="ALL">Semua Pesanan</option>
+                <option value="PENDING">Belum Bayar</option>
+                <option value="WAITING_APPROVAL">Menunggu Verifikasi</option>
+                <option value="IN_PRODUCTION">Sedang Diproses</option>
+                <option value="DONE">Selesai</option>
+                <option value="REJECTED">Dibatalkan / Ditolak</option>
+            </select>
+        </div>
     </div>
 
     <div id="ordersContainer" class="space-y-4">
         <div class="text-center py-20 text-stone-400 text-sm">
-            <svg class="w-6 h-6 animate-spin mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
             Memuat daftar transaksi...
         </div>
     </div>
@@ -58,88 +62,66 @@ let allOrders = [];
 let currentFilter = 'ALL';
 
 function getToken() { return localStorage.getItem('token'); }
-
-// Autentikasi Guard
-if (!getToken()) {
-    window.location.href = 'login.html';
-}
-
-function logout() {
-    localStorage.removeItem('token');
-    window.location.href = 'login.html';
-}
+if (!getToken()) window.location.href = 'login.html';
 
 function formatIDR(n) { 
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n); 
 }
 
-function formatDate(dateStr) {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateStr).toLocaleDateString('id-ID', options);
-}
-
-// Mapper Pewarnaan & Label Status Tracking
+// Badge Status ala Shopee (Teks warna warni di pojok kanan atas)
 function getStatusBadge(status) {
     const maps = {
-        'PENDING':          { text: 'Menunggu Pembayaran',   css: 'bg-amber-50 text-amber-700 border-amber-200' },
-        'WAITING_APPROVAL': { text: 'Menunggu Verifikasi',   css: 'bg-blue-50 text-blue-700 border-blue-200' },
-        'APPROVED':         { text: 'Pesanan Disetujui',     css: 'bg-stone-100 text-stone-700 border-stone-300' },
-        'IN_PRODUCTION':    { text: 'Dalam Proses Produksi', css: 'bg-rust/10 text-rust border-rust/20' },
-        'DONE':             { text: 'Selesai Dikirim',       css: 'bg-green-50 text-green-700 border-green-200' },
-        'REJECTED':         { text: 'Bukti Bayar Ditolak',   css: 'bg-red-50 text-red-700 border-red-200' }
+        'PENDING':          { text: 'BELUM BAYAR', css: 'text-rust' },
+        'WAITING_APPROVAL': { text: 'MENUNGGU VERIFIKASI', css: 'text-blue-600' },
+        'APPROVED':         { text: 'DISETUJUI', css: 'text-stone-700' },
+        'IN_PRODUCTION':    { text: 'SEDANG DIPROSES', css: 'text-orange-500' },
+        'DONE':             { text: 'SELESAI', css: 'text-green-600' },
+        'REJECTED':         { text: 'DITOLAK', css: 'text-red-600' }
     };
-    const config = maps[status] || { text: status, css: 'bg-stone-50 text-stone-600 border-stone-200' };
-    return `<span class="text-[0.7rem] font-medium uppercase tracking-wider px-2.5 py-1 border ${config.css}">${config.text}</span>`;
+    const config = maps[status] || { text: status, css: 'text-stone-600' };
+    return `<span class="text-xs font-medium uppercase tracking-wider ${config.css}">${config.text}</span>`;
 }
 
-// Mengurai teks konfigurasi kustomisasi 3D
-function parseConfig(configData) {
-    if (!configData) return '';
+// Menampilkan kustomisasi jadi list yang rapi
+function parseConfig(configData, finishing) {
+    let details = [];
+    if (finishing) details.push(`Finishing: ${finishing}`);
+    
+    if (!configData) return details.join('<br>');
     try {
         const cfg = typeof configData === 'string' ? JSON.parse(configData) : configData;
-        const keys = [];
-        if (cfg.width)  keys.push(`${cfg.width}cm (L)`);
-        if (cfg.height) keys.push(`${cfg.height}cm (T)`);
-        if (cfg.depth)  keys.push(`${cfg.depth}cm (P)`);
-        if (cfg.cols)   keys.push(`${cfg.cols} Kolom`);
-        if (cfg.rows)   keys.push(`${cfg.rows} Baris`);
-        if (cfg.drawer) keys.push(`${cfg.drawer} Drawer`);
-        if (cfg.laci)   keys.push(`${cfg.laci} Laci`);
-        return keys.join(' • ');
-    } catch (e) { return ''; }
+        if (cfg.width && cfg.height && cfg.depth) details.push(`Dimensi: ${cfg.width}x${cfg.depth}x${cfg.height} cm`);
+        if (cfg.cols)   details.push(`Jumlah Kolom: ${cfg.cols}`);
+        if (cfg.rows)   details.push(`Jumlah Baris: ${cfg.rows}`);
+        if (cfg.drawer) details.push(`Jumlah Drawer: ${cfg.drawer}`);
+        if (cfg.laci)   details.push(`Jumlah Laci Kosong: ${cfg.laci}`);
+        if (cfg.rodPosition) details.push(`Gantungan Baju: ${cfg.rodPosition.replace(/_/g, ' ')}`);
+        
+        return details.join('<br>');
+    } catch (e) { return finishing ? `Finishing: ${finishing}` : 'Spesifikasi Standar'; }
 }
 
-// Mengambil Data dari Endpoint GET /api/orders/my
 async function fetchMyOrders() {
     try {
         const res = await fetch(`${API}/orders/my`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
-        if (!res.ok) throw new Error('Gagal memuat data transaksi');
+        if (!res.ok) throw new Error('Gagal memuat data');
         allOrders = await res.json();
         renderOrders();
     } catch (err) {
-        document.getElementById('ordersContainer').innerHTML = `
-            <div class="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-4 text-center">
-                ${err.message}. Silakan muat ulang halaman.
-            </div>`;
+        document.getElementById('ordersContainer').innerHTML = `<div class="bg-white p-6 text-center text-red-500 text-sm">${err.message}</div>`;
     }
 }
 
-// Filter Berdasarkan Tab Aktif
-function switchTab(status, element) {
+function switchTab(status) {
     currentFilter = status;
-    document.querySelectorAll('nav + div button').forEach(btn => btn.classList.remove('tab-active'));
-    element.classList.add('tab-active');
     renderOrders();
 }
 
-// Render List Kartu ke DOM
 function renderOrders() {
     const container = document.getElementById('ordersContainer');
-    
-    // Klasifikasi filter status logis
     const filtered = allOrders.filter(order => {
         if (currentFilter === 'ALL') return true;
         if (currentFilter === 'IN_PRODUCTION') return order.status === 'APPROVED' || order.status === 'IN_PRODUCTION';
@@ -147,54 +129,49 @@ function renderOrders() {
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = `
-            <div class="bg-white border border-stone-200 py-16 text-center text-stone-400 text-sm">
-                Tidak ada riwayat pesanan pada kategori ini.
-            </div>`;
+        container.innerHTML = `<div class="bg-white p-12 text-center text-stone-400 text-sm border border-stone-200">Belum ada pesanan di kategori ini.</div>`;
         return;
     }
 
-    container.innerHTML = filtered.map(order => `
-        <div class="bg-white border border-stone-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-            <div class="px-5 py-3.5 border-b border-stone-100 flex flex-wrap justify-between items-center gap-2 bg-stone-50/50">
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-mono font-medium text-stone-900">${order.orderCode}</span>
-                    <span class="text-[0.7rem] text-stone-400">${formatDate(order.createdAt)}</span>
-                </div>
-                <div>${getStatusBadge(order.status)}</div>
+    container.innerHTML = filtered.map(order => {
+        // Ambil gambar dari relasi produk (kalau gak ada, kasih fallback)
+        const imgSrc = order.product?.thumbnail 
+            ? (order.product.thumbnail.startsWith('http') ? order.product.thumbnail : `http://localhost:3001/uploads/${order.product.thumbnail.replace('uploads/', '')}`)
+            : 'https://via.placeholder.com/100?text=No+Image';
+
+        return `
+        <div class="bg-white border border-stone-200 shadow-sm">
+            <div class="px-5 py-3 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
+                <span class="text-xs font-mono text-stone-500">ID: ${order.orderCode}</span>
+                ${getStatusBadge(order.status)}
             </div>
             
-            <div class="p-5 flex gap-4 items-start">
-                <div class="w-16 h-16 bg-stone-100 border border-stone-200 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-6 h-6 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7  7h10"/></svg>
-                </div>
+            <div class="p-5 flex flex-col md:flex-row gap-4 items-start">
+                <img src="${imgSrc}" alt="Produk" class="w-20 h-20 md:w-24 md:h-24 object-cover border border-stone-200 flex-shrink-0">
                 <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-stone-900 truncate">${order.productName}</h3>
-                    <p class="text-xs text-stone-400 mt-1 truncate">${parseConfig(order.config) || 'Spesifikasi Standar'}</p>
-                    ${order.finishing ? `<p class="text-xs text-stone-500 mt-0.5">Finishing: ${order.finishing}</p>` : ''}
-                    ${order.adminNotes ? `
-                        <div class="mt-2 text-xs bg-amber-50 text-amber-800 p-2.5 border border-amber-100 leading-relaxed">
-                            <strong>Catatan Admin:</strong> ${order.adminNotes}
-                        </div>` : ''}
+                    <h3 class="text-base font-medium text-stone-900">${order.productName}</h3>
+                    <div class="text-xs text-stone-500 mt-2 leading-relaxed">
+                        ${parseConfig(order.config, order.finishing)}
+                    </div>
+                    ${order.adminNotes ? `<div class="mt-3 text-xs bg-amber-50 text-amber-800 p-2 border border-amber-100"><strong>Catatan Admin:</strong> ${order.adminNotes}</div>` : ''}
+                </div>
+                <div class="text-right mt-4 md:mt-0 w-full md:w-auto">
+                    <p class="text-xs text-stone-500 mb-1">Total Pesanan</p>
+                    <p class="font-serif text-lg text-rust">${formatIDR(order.totalPrice)}</p>
                 </div>
             </div>
             
-            <div class="px-5 py-3.5 border-t border-stone-100 flex items-center justify-between bg-stone-50/20">
-                <div class="text-xs text-stone-400"> Total Pesanan </div>
-                <div class="flex items-center gap-4">
-                    <span class="font-serif font-light text-lg text-rust">${formatIDR(order.totalPrice)}</span>
-                    ${order.status === 'PENDING' ? `
-                        <a href="order.html?productId=${order.productId}&totalPrice=${order.totalPrice}&productName=${encodeURIComponent(order.productName)}" 
-                           class="px-4 py-2 bg-stone-900 hover:bg-rust text-white text-[0.65rem] tracking-wider uppercase font-medium transition-colors">
-                            Bayar Sekarang
-                        </a>` : ''}
-                </div>
-            </div>
-        </div>
-    `).join('');
+            ${order.status === 'PENDING' ? `
+            <div class="px-5 py-4 border-t border-stone-100 bg-stone-50/20 flex justify-end">
+                <a href="order.html?productId=${order.productId}&totalPrice=${order.totalPrice}&productName=${encodeURIComponent(order.productName)}" 
+                   class="px-6 py-2.5 bg-rust hover:bg-stone-900 text-white text-[0.7rem] tracking-widest uppercase font-medium transition-colors">
+                    Bayar Sekarang
+                </a>
+            </div>` : ''}
+        </div>`;
+    }).join('');
 }
 
-// Jalankan Fungsi Saat Halaman Siap
 fetchMyOrders();
 </script>
 </body>

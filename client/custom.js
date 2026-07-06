@@ -45,7 +45,7 @@ const FINISHING_DISPLAY_LABELS = {
 
     // Tier 2 — PVC Motif Kayu
     'Kayu Terang': 'PVC Motif Kayu Terang',
-    'Kayu':        'PVC Motif Kayu Natural',
+    'Kayu':        'PVC Motif Kayu Netral',
     'Kayu Abu':    'PVC Motif Kayu Warna Abu',
 
     // Tier 3 — HPL Standar
@@ -876,24 +876,24 @@ function setupEnvironment() {
     // Silhouette manusia — tanpa addLabel3D, label ditangani HTML overlay
   
 }
-
-
-
 // ==========================================
 // --- DIMENSION LABELS & PRICE OVERLAY ---
 // ==========================================
 let labelContainer = null;
-
 function initLabelContainer() {
     labelContainer = document.createElement('div');
     labelContainer.id = 'dim-labels';
     labelContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:10;';
     container.style.position = 'relative';
     container.appendChild(labelContainer);
-
+    
     // Price overlay pojok kiri atas canvas
     const priceOverlay = document.createElement('div');
     priceOverlay.id = 'price-overlay';
+    
+    // --- KODE BARU: Sembunyikan di layar HP (hidden), munculkan di layar Desktop (md:block) ---
+    priceOverlay.className = 'hidden md:block';
+    
     priceOverlay.style.cssText = `
         position:absolute;top:16px;left:16px;
         background:rgba(26,26,24,0.80);
