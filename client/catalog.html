@@ -105,7 +105,7 @@
 
             // MODIFIKASI DISINI: Jika field thumbnail ada isinya di DB, panggil URL backend port 3001
             const imgHTML = item.thumbnail
-                ? `<img src="http://localhost:3001/uploads/${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">`
+                ? `<img src="${API_BASE_URL.replace('api', '')}/uploads/${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">`
                 : `<svg class="w-14 h-14 text-stone-300 transition-transform duration-500 group-hover:scale-105" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 64 64">
                        <path d="M32 8L8 20v24l24 12 24-12V20L32 8z"/><path d="M32 8v36M8 20l24 12 24-12"/>
                    </svg>`;
