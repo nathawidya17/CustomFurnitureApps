@@ -191,7 +191,8 @@
                 // --- PROSES RENDER GAMBAR UTAMA ---
                 const mainImageContainer = document.getElementById('mainImage');
                 if (item.thumbnail) {
-                    mainImageContainer.innerHTML = `<img src="http://localhost:3001/uploads/${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover">`;
+                   const baseUrl = API_BASE_URL.split('/api')[0];
+                    mainImageContainer.innerHTML = `<img src="${baseUrl}/uploads/${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover">`;
                 } else {
                     mainImageContainer.innerHTML = `
                         <svg class="w-32 h-32 text-stone-200" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 64 64">
@@ -218,7 +219,8 @@
                 if (imageList.length > 0) {
                     imageList.forEach((fileName, index) => {
                         // Ganti URL sesuai path folder uploads di server lu
-                        const imgUrl = `http://localhost:3001/uploads/${fileName}`;
+                        const baseUrl = API_BASE_URL.split('/api')[0];
+                        const imgUrl = `${baseUrl}/uploads/${fileName}`;
                         
                         // Kasih class 'active' hanya ke foto pertama
                         const isActiveClass = index === 0 ? 'active' : '';
