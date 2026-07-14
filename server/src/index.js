@@ -5,7 +5,19 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors({ origin: 'http://127.0.0.1:5500', credentials: true }));
+// Ganti baris 8 dengan ini:
+const allowedOrigins = ['http://127.0.0.1:5500', 'https://debbimeubel.up.railway.app']; // Tambahkan domain Railway lu di sini
+
+app.use(cors({ 
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true 
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
