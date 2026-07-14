@@ -151,9 +151,10 @@ function renderOrders() {
 
     container.innerHTML = filtered.map(order => {
         // Ambil gambar dari relasi produk (kalau gak ada, kasih fallback)
-        const imgSrc = order.product?.thumbnail 
-            ? (order.product.thumbnail.startsWith('http') ? order.product.thumbnail : `http://localhost:3001/uploads/${order.product.thumbnail.replace('uploads/', '')}`)
-            : 'https://via.placeholder.com/100?text=No+Image';
+        const baseUrl = API.split('/api')[0];
+const imgSrc = order.product?.thumbnail 
+    ? (order.product.thumbnail.startsWith('http') ? order.product.thumbnail : `${baseUrl}/uploads/${order.product.thumbnail.replace('uploads/', '')}`)
+    : 'https://via.placeholder.com/100?text=No+Image';
 
         return `
         <div class="bg-white border border-stone-200 shadow-sm">
