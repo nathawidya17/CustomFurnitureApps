@@ -71,16 +71,13 @@ const handleUpload = (req, res, next) => {
     });
 };
 
-// ── LOGIKA CONTROLLER UTAMA ───────────────────────────────────
+// ── LOGIKA CONTROLLER UTAMA ─────────────────
 const createOrder = async (req, res) => {
     try {
-        // 1. Hapus 'notes' dan tambahkan 'finishing' di tangkapan req.body
         const { productName, productId, config, totalPrice, finishing, customerName, customerPhone, customerEmail, customerAddress } = req.body;
         
-        // 2. Parse config agar menjadi object JavaScript yang bisa dimanipulasi
         let parsedConfig = typeof config === 'string' ? JSON.parse(config || '{}') : (config || {});
         
-        // 3. Masukkan data finishing ke dalam config (jika user memilih finishing)
         if (finishing) {
             parsedConfig.finishing = finishing;
         }
@@ -91,7 +88,6 @@ const createOrder = async (req, res) => {
                 userId: req.user.id, 
                 productId: parseInt(productId) || 1,
                 productName, 
-                // 4. Ubah kembali config yang sudah ditambah finishing menjadi string JSON
                 config: JSON.stringify(parsedConfig), 
                 totalPrice: parseInt(totalPrice), 
                 status: 'PENDING',
@@ -100,7 +96,7 @@ const createOrder = async (req, res) => {
         });
 
         const pesanAdmin = `🚨 *Pesanan Baru Masuk!*\nKode: ${order.orderCode}\nNama: ${customerName}\nItem: ${productName}\nTotal: Rp${totalPrice}\n\nMohon segera dicek di Dashboard.`;
-        sendWA('6281218212498', pesanAdmin).catch(()=>{});
+        sendWA('62895396157579', pesanAdmin).catch(()=>{});
 
         const pesanPelanggan = `Halo Kak *${customerName}*,\n\nTerima kasih telah berbelanja di *Debbi Meubel*. Pesanan Anda dengan kode *${order.orderCode}* telah kami terima.\n\nTotal Pembayaran: *Rp${totalPrice}*\nStatus: *MENUNGGU VERIFIKASI*\n\nAdmin akan segera memverifikasi pesanan Anda. Terima kasih!`;
         sendWA(formatNoWA(customerPhone), pesanPelanggan).catch(()=>{});

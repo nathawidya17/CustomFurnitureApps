@@ -295,9 +295,7 @@
 </div>
 
 <script>
-// ============================================================
-// GANTI SELURUH ISI <script> DI order.html DENGAN INI
-// ============================================================
+
 
 const API      = 'http://localhost:3001/api';
 const ADMIN_WA = '6281218212498';
@@ -613,7 +611,7 @@ async function submitOrder() {
                 productId:       parseInt(orderData.productId)||1,
                 config:          typeof orderData.config==='object'?JSON.stringify(orderData.config):orderData.config,
                 totalPrice:      orderData.totalPrice,
-                finishing:       orderData.finishing,   // ← tambahkan baris ini
+                finishing:       orderData.finishing,   
                 customerName:    userData.name,
                 customerPhone:   userData.phone,
                 customerEmail:   userData.email,
